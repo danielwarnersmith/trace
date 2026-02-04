@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Timeline Entry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "kind", "offset_ms", "wall_time", "created_at", "source"],
+  "properties": {
+    "id": { "$ref": "#/$defs/ulid" },
+    "kind": {
+      "type": "string",
+      "enum": ["session_start", "session_end", "media_start", "media_end"]
+    },
+    "offset_ms": { "$ref": "#/$defs/duration_ms" },
+    "wall_time": { "$ref": "#/$defs/rfc3339" },
+    "created_at": { "$ref": "#/$defs/rfc3339" },
+    "source": { "type": "string", "enum": ["system", "user"] }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "rfc3339": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

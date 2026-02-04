@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Voice Note",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "created_at", "media_path", "offset_ms", "duration_ms"],
+  "properties": {
+    "id": { "$ref": "#/$defs/ulid" },
+    "created_at": { "$ref": "#/$defs/rfc3339" },
+    "media_path": {
+      "type": "string",
+      "pattern": "^media/"
+    },
+    "offset_ms": { "$ref": "#/$defs/duration_ms" },
+    "duration_ms": { "$ref": "#/$defs/duration_ms" },
+    "transcript_text": { "type": "string" },
+    "marker_id": { "$ref": "#/$defs/ulid" }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "rfc3339": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01J9Z2J8G8QK7F4M1N1E5J3Z7N",
+  "title": "",
+  "created_at": "2026-02-04T12:00:00Z",
+  "updated_at": "2026-02-04T12:00:00Z",
+  "status": "active",
+  "start_time": "2026-02-04T12:00:00Z",
+  "timeline_path": "timeline.jsonl",
+  "markers_path": "markers.jsonl",
+  "transcript_path": null,
+  "voice_notes_path": null,
+  "digest_path": null,
+  "media": []
+}

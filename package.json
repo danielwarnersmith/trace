@@ -1,0 +1,31 @@
+{
+  "name": "trace",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "bin": {
+    "trace": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "tsx --test test/**/*.test.ts",
+    "validate:fixtures": "tsx src/validation/validate-fixtures.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "ajv": "^8.12.0",
+    "ulid": "^2.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^20.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.0.0"
+  }
+}
