@@ -37,6 +37,21 @@ function wallTimeFromOffset(startTime: string, offsetMs: number): string {
   return time.toISOString();
 }
 
+async function getLastTimelineOffset(timelinePath: string): Promise<number | null> {
+  const content = await readFile(timelinePath, 'utf8');
+  const lines = content.split(/\r?\n/).filter((line) => line.trim().length > 0);
+  if (lines.length === 0) {
+    return null;
+  }
+  const lastLine = lines[lines.length - 1];
+  const entry = JSON.parse(lastLine) as Record<string, unknown>;
+  const offset = entry.offset_ms;
+  if (typeof offset !== 'number') {
+    throw new Error('invalid timeline entry offset_ms');
+  }
+  return offset;
+}
+
 export async function addMedia(sessionDir: string, input: MediaInput): Promise<MediaResult> {
   const resolvedDir = path.resolve(sessionDir);
   const sessionPath = path.join(resolvedDir, 'session.json');
@@ -45,6 +60,13 @@ export async function addMedia(sessionDir: string, input: MediaInput): Promise<M
   await access(sessionPath);
   await access(timelinePath);
   await access(input.filePath);
+
+  if (!Number.isFinite(input.start_offset_ms) || input.start_offset_ms < 0) {
+    throw new Error('start_offset_ms must be a non-negative number');
+  }
+  if (input.duration_ms !== undefined && (!Number.isFinite(input.duration_ms) || input.duration_ms < 0)) {
+    throw new Error('duration_ms must be a non-negative number');
+  }
 
   await mkdir(path.join(resolvedDir, 'media'), { recursive: true });
 
@@ -76,6 +98,21 @@ export async function addMedia(sessionDir: string, input: MediaInput): Promise<M
   const startTime = session.start_time;
   if (typeof startTime !== 'string') {
     throw new Error('session start_time missing');
+  }
+
+  const lastOffset = await getLastTimelineOffset(timelinePath);
+  if (lastOffset !== null && input.start_offset_ms < lastOffset) {
+    throw new Error('media start_offset_ms precedes last timeline offset');
+  }
+
+  if (session.status === 'closed' && typeof session.duration_ms === 'number') {
+    const endOffset =
+      input.duration_ms !== undefined
+        ? input.start_offset_ms + input.duration_ms
+        : input.start_offset_ms;
+    if (input.start_offset_ms > session.duration_ms || endOffset > session.duration_ms) {
+      throw new Error('media offsets exceed closed session duration');
+    }
   }
 
   const mediaStart = {

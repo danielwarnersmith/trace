@@ -2,6 +2,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { initSession } from './commands/session-init.js';
+import { closeSession } from './commands/session-close.js';
 import { addMarker, addVoiceNote } from './commands/mark.js';
 import { addMedia } from './commands/media.js';
 import { transcribeSession } from './commands/transcribe.js';
@@ -13,6 +14,7 @@ const usage = `TRACE CLI
 
 Usage:
   trace session init <dir>
+  trace session close <dir>
   trace media add <dir> --file <path> --kind <kind> --mime <mime> --offset <ms> [--duration <ms>]
   trace transcribe <dir> --file <path> | --text <text> [--offset <ms>] [--duration <ms>]
   trace mark <dir> --offset <ms> [--label <label>] [--note <text>] [--tag <tag> ...]
@@ -111,6 +113,19 @@ async function main(): Promise<void> {
       process.exit(1);
     }
     process.exit(await runInit(targetDir));
+  }
+
+  if (command === 'session' && subcommand === 'close') {
+    const targetDir = rest[0];
+    if (!targetDir) {
+      console.error('error: missing <dir> for session close');
+      printUsage();
+      process.exit(1);
+    }
+
+    const result = await closeSession(targetDir);
+    console.log(`closed: ${targetDir} (duration ${result.duration_ms}ms)`);
+    process.exit(0);
   }
 
   if (command === 'media' && subcommand === 'add') {

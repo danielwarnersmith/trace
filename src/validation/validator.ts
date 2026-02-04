@@ -1,4 +1,4 @@
-import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
+import Ajv2020, { type ErrorObject, type ValidateFunction } from 'ajv/dist/2020';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { traceSpecRoot } from '../paths.js';
@@ -11,7 +11,7 @@ export type SchemaName =
   | 'transcript'
   | 'actions';
 
-const ajv = new Ajv({ allErrors: true, strict: true });
+const ajv = new Ajv2020({ allErrors: true, strict: true });
 const schemaCache = new Map<SchemaName, ValidateFunction>();
 
 function schemaPath(name: SchemaName): string {

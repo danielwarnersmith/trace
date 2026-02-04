@@ -85,6 +85,22 @@ trace-spec/schemas/ once those schemas are defined.
 JSONL files are ordered lists. If multiple entries share the same id, the last
 entry in file order is authoritative for that id.
 
+Ordering constraints:
+
+- timeline.jsonl entries MUST be in non-decreasing order by offset_ms.
+- transcript.jsonl entries MUST be in non-decreasing order by offset_ms.
+
+## Referential integrity and file existence
+
+- If a marker includes voice_note_id, voice_notes.jsonl MUST exist and contain
+  an entry with that id.
+- If a voice note includes marker_id, markers.jsonl MUST contain an entry with
+  that id.
+- media paths referenced by session.json.media entries MUST exist on disk
+  relative to the session directory.
+- media_path referenced by voice notes MUST exist on disk relative to the
+  session directory.
+
 ## Conformance
 
 An implementation is conformant if it:

@@ -76,6 +76,16 @@ export async function transcribeSession(
         throw new Error(`invalid transcript on line ${i + 1}: ${formatAjvErrors(result.errors)}`);
       }
     }
+    let lastOffset = -Infinity;
+    for (let i = 0; i < segments.length; i += 1) {
+      const offset = (segments[i] as Record<string, unknown>).offset_ms;
+      if (typeof offset === 'number') {
+        if (offset < lastOffset) {
+          throw new Error(`transcript offsets must be non-decreasing (line ${i + 1})`);
+        }
+        lastOffset = offset;
+      }
+    }
     await writeFile(transcriptPath, raw.trimEnd() + '\n', 'utf8');
   } else if (options.text !== undefined) {
     const segment = {

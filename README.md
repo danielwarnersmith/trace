@@ -8,6 +8,7 @@ Spec-first repository. Product behavior must conform to `trace-spec/SPEC.md` and
 - `npm install`
 - `npm run dev -- --help`
 - `npm run dev -- session init ./sessions/demo`
+- `npm run dev -- session close ./sessions/demo`
 - `npm run dev -- media add ./sessions/demo --file ./audio/take-1.m4a --kind audio --mime audio/mp4 --offset 0 --duration 120000`
 - `npm run dev -- validate ./sessions/demo`
 - `npm run dev -- transcribe ./sessions/demo --text \"Let's take it from the top.\" --offset 0 --duration 1800`

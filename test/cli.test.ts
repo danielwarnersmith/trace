@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { closeSession } from '../src/commands/session-close.js';
 import { addMarker, addVoiceNote } from '../src/commands/mark.js';
 import { writeDigest } from '../src/commands/digest.js';
 import { initSession } from '../src/commands/session-init.js';
@@ -114,6 +115,19 @@ test('mark, voice-note, and digest update session data', async () => {
   });
 });
 
+test('closeSession appends session_end and validates', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await initSession(sessionDir);
+
+    const result = await closeSession(sessionDir);
+    assert.ok(result.duration_ms >= 0);
+
+    const report = await validateSessionDir(sessionDir);
+    assert.equal(report.ok, true, JSON.stringify(report.issues, null, 2));
+  });
+});
+
 test('transcribe requires audio media', async () => {
   await withTempDir(async (base) => {
     const sessionDir = path.join(base, 'session');
@@ -159,6 +173,85 @@ test('transcribe writes transcript when audio media exists', async () => {
   });
 });
 
+test('validateSessionDir flags ordering and referential issues', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await initSession(sessionDir);
+
+    const sessionPath = path.join(sessionDir, 'session.json');
+    const sessionRaw = await readFile(sessionPath, 'utf8');
+    const session = JSON.parse(sessionRaw) as Record<string, unknown>;
+    session.transcript_path = 'transcript.jsonl';
+    session.voice_notes_path = 'voice_notes.jsonl';
+    await writeFile(sessionPath, `${JSON.stringify(session, null, 2)}\n`, 'utf8');
+
+    const transcriptPath = path.join(sessionDir, 'transcript.jsonl');
+    const transcriptLines = [
+      JSON.stringify({
+        id: '01J9Z2R3YF8J5HPZ2E5Y2R1ZQA',
+        offset_ms: 100,
+        duration_ms: 10,
+        text: 'First',
+      }),
+      JSON.stringify({
+        id: '01J9Z2R3YF8J5HPZ2E5Y2R1ZQB',
+        offset_ms: 50,
+        duration_ms: 10,
+        text: 'Second',
+      }),
+    ];
+    await writeFile(transcriptPath, `${transcriptLines.join('\n')}\n`, 'utf8');
+
+    const markersPath = path.join(sessionDir, 'markers.jsonl');
+    await writeFile(
+      markersPath,
+      `${JSON.stringify({
+        id: '01J9Z2R3YF8J5HPZ2E5Y2R1ZQC',
+        offset_ms: 0,
+        created_at: '2026-02-04T12:00:00Z',
+        source: 'user',
+        voice_note_id: '01J9Z2R3YF8J5HPZ2E5Y2R1ZQX',
+      })}\n`,
+      'utf8',
+    );
+
+    const voiceNotesPath = path.join(sessionDir, 'voice_notes.jsonl');
+    await writeFile(
+      voiceNotesPath,
+      `${JSON.stringify({
+        id: '01J9Z2R3YF8J5HPZ2E5Y2R1ZQD',
+        created_at: '2026-02-04T12:00:05Z',
+        media_path: 'media/missing-note.m4a',
+        offset_ms: 0,
+        duration_ms: 10,
+        marker_id: '01J9Z2R3YF8J5HPZ2E5Y2R1ZQY',
+      })}\n`,
+      'utf8',
+    );
+
+    session.media = [
+      {
+        id: '01J9Z2R3YF8J5HPZ2E5Y2R1ZQE',
+        kind: 'audio',
+        path: 'media/missing.m4a',
+        mime: 'audio/mp4',
+        created_at: '2026-02-04T12:00:00Z',
+        start_offset_ms: 0,
+      },
+    ];
+    await writeFile(sessionPath, `${JSON.stringify(session, null, 2)}\n`, 'utf8');
+
+    const report = await validateSessionDir(sessionDir);
+    assert.equal(report.ok, false);
+    const messages = report.issues.map((issue) => issue.message).join(' | ');
+    assert.ok(messages.includes('transcript offset_ms out of order'), messages);
+    assert.ok(messages.includes('marker voice_note_id not found'), messages);
+    assert.ok(messages.includes('voice_note marker_id not found'), messages);
+    assert.ok(messages.includes('voice_note media file missing'), messages);
+    assert.ok(messages.includes('media file missing'), messages);
+  });
+});
+
 test('cli session init and validate', async () => {
   await withTempDir(async (base) => {
     const sessionDir = path.join(base, 'session');
@@ -168,6 +261,19 @@ test('cli session init and validate', async () => {
     const validateResult = await runCli(['validate', sessionDir]);
     assert.equal(validateResult.code, 0, validateResult.stderr);
     assert.ok(validateResult.stdout.includes('ok:'), validateResult.stdout);
+  });
+});
+
+test('cli session close', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+
+    const closeResult = await runCli(['session', 'close', sessionDir]);
+    assert.equal(closeResult.code, 0, closeResult.stderr);
+
+    const validateResult = await runCli(['validate', sessionDir]);
+    assert.equal(validateResult.code, 0, validateResult.stderr);
   });
 });
 
@@ -269,6 +375,46 @@ test('cli transcribe succeeds with media', async () => {
       '--duration',
       '1800',
     ]);
+    assert.equal(result.code, 0, result.stderr);
+
+    const validateResult = await runCli(['validate', sessionDir]);
+    assert.equal(validateResult.code, 0, validateResult.stderr);
+  });
+});
+
+test('cli transcribe accepts --file', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+
+    const mediaFile = path.join(base, 'audio.m4a');
+    await writeFile(mediaFile, 'audio', 'utf8');
+
+    const mediaResult = await runCli([
+      'media',
+      'add',
+      sessionDir,
+      '--file',
+      mediaFile,
+      '--kind',
+      'audio',
+      '--mime',
+      'audio/mp4',
+      '--offset',
+      '0',
+    ]);
+    assert.equal(mediaResult.code, 0, mediaResult.stderr);
+
+    const transcriptFile = path.join(base, 'transcript.jsonl');
+    const transcriptLine = JSON.stringify({
+      id: '01J9Z2P2KM3QZ9Z1B1K2Q7Y2P8',
+      offset_ms: 0,
+      duration_ms: 1800,
+      text: 'Line 1',
+    });
+    await writeFile(transcriptFile, `${transcriptLine}\n`, 'utf8');
+
+    const result = await runCli(['transcribe', sessionDir, '--file', transcriptFile]);
     assert.equal(result.code, 0, result.stderr);
 
     const validateResult = await runCli(['validate', sessionDir]);
