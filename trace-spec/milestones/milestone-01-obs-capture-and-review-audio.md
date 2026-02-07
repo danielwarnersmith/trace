@@ -17,7 +17,7 @@
 
 ## To-dos
 
-### 1. OBS → session lifecycle: session creation on recording start
+### 1. OBS → session lifecycle: session creation on recording start — Done
 
 **Read:** [trace-spec/codex/INGEST.md](../codex/INGEST.md) (Session creation), [src/commands/session-init.ts](../../src/commands/session-init.ts).
 
@@ -27,9 +27,11 @@
 
 **Done when:** When OBS starts recording (by whatever trigger is chosen), a session directory appears with session.json (id, created_at, updated_at, status "active", start_time, timeline_path, markers_path, etc.), timeline.jsonl with one session_start at offset_ms 0, empty markers.jsonl, and media/ directory. No manual `trace session init` required for the OBS flow.
 
+*Implemented: integrations/obs/trace-obs-session.lua (recording start); state file ~/.trace/obs-active-session.txt.*
+
 ---
 
-### 2. OBS → session lifecycle: session close on recording stop
+### 2. OBS → session lifecycle: session close on recording stop — Done — Done
 
 **Read:** [trace-spec/codex/INGEST.md](../codex/INGEST.md) (Session close), [src/commands/session-close.ts](../../src/commands/session-close.ts).
 
@@ -38,6 +40,8 @@
 **Where:** Same integration layer as to-do 1; reuse `closeSession` or equivalent.
 
 **Done when:** When OBS stops recording, the session directory’s session.json has status "closed", end_time and duration_ms set, and timeline.jsonl ends with a session_end entry at the correct offset_ms. Validation (`trace validate <dir>`) passes.
+
+*Implemented: same Lua script (recording stop); reads state file, runs trace session close, clears state.*
 
 ---
 
@@ -50,6 +54,8 @@
 **Where:** New doc under `docs/` or section in project README.
 
 **Done when:** A maintainer can follow the doc and have OBS writing a local recording that TRACE will use as the authoritative source for the session.
+
+*Implemented: docs/obs-setup.md (recommended OBS settings, recording path, reliable recording).*
 
 ---
 
