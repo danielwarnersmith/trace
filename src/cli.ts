@@ -12,6 +12,7 @@ import { transcribeSession } from './commands/transcribe.js';
 import { writeDigest } from './commands/digest.js';
 import { validateSessionDir } from './commands/validate-session.js';
 import { runAction } from './commands/action-run.js';
+import { createMidiListener, getInputPortNames } from './midi/listener.js';
 import { validateAllFixtures } from './validation/fixtures.js';
 
 const usage = `TRACE CLI
@@ -29,6 +30,7 @@ Usage:
   trace digest write <dir> --file <path>
   trace digest read <dir>
   trace action run <dir> <action-id> [--input key=value ...]
+  trace midi listen <dir> [--port <index>]
   trace validate <dir>
   trace validate-fixtures
   trace --help
@@ -203,6 +205,63 @@ async function main(): Promise<void> {
     const result = await addReviewAudio(targetDir, source);
     console.log(`media: ${result.id} (${result.path})`);
     process.exit(0);
+  }
+
+  if (command === 'midi' && subcommand === 'listen') {
+    const sessionDir = rest[0];
+    if (!sessionDir) {
+      console.error('error: missing <dir> for midi listen');
+      printUsage();
+      process.exit(1);
+    }
+
+    const portStr = getFlagValue(rest, '--port');
+    const portIndex = portStr !== undefined ? parseNonNegativeInt(portStr, 'port') : 0;
+
+    const report = await validateSessionDir(sessionDir);
+    if (!report.ok) {
+      for (const issue of report.issues) {
+        console.error(`error: ${issue.file}: ${issue.message}`);
+      }
+      process.exit(1);
+    }
+
+    const sessionPath = `${sessionDir}/session.json`;
+    let session: Record<string, unknown>;
+    try {
+      const raw = await readFile(sessionPath, 'utf8');
+      session = JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      console.error('error: could not read session.json');
+      process.exit(1);
+    }
+    const status = session.status as string | undefined;
+    if (status !== 'active') {
+      console.error(`warning: session status is "${status ?? 'unknown'}"; expected "active" for live markers. Listening anyway.`);
+    }
+
+    const portNames = getInputPortNames();
+    if (portNames.length === 0) {
+      console.error('error: no MIDI input ports found (macOS: CoreMIDI; Windows: MIDI API). Connect a device or create a virtual port.');
+      process.exit(1);
+    }
+    if (portIndex >= portNames.length) {
+      console.error(`error: port index ${portIndex} out of range (0–${portNames.length - 1}). Ports: ${portNames.map((n, i) => `${i}: ${n}`).join(', ')}`);
+      process.exit(1);
+    }
+
+    console.error(`listening for MIDI CC on port ${portIndex}: ${portNames[portIndex]}. Session: ${sessionDir}. Ctrl+C to stop.`);
+    const stop = createMidiListener({ portIndex, onCC: () => {}, log: true });
+    process.on('SIGINT', () => {
+      stop();
+      process.exit(0);
+    });
+    process.on('SIGTERM', () => {
+      stop();
+      process.exit(0);
+    });
+    // Keep process alive
+    await new Promise<void>(() => {});
   }
 
   if (command === 'transcribe') {

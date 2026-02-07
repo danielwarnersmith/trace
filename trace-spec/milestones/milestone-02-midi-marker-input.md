@@ -16,7 +16,7 @@
 
 ## To-dos
 
-### 1. MIDI input listener
+### 1. MIDI input listener — Done
 
 **Read:** [trace-spec/SPEC.md](../SPEC.md) Stage 2 — "Listens for MIDI input during the session"; "When a valid CC is received, TRACE writes a marker event."
 
@@ -25,6 +25,8 @@
 **Where:** New module under `src/` (e.g. `src/midi/` or `src/ingest/midi-listener.ts`) or a standalone script in `scripts/`. Document how to run it (e.g. `trace midi listen <session-dir>` or separate process). Document OS/port requirements (e.g. macOS CoreMIDI, Windows MIDI API).
 
 **Done when:** When a MIDI CC is sent to the configured device/port, the listener receives it and can pass channel, CC number, and value to the next layer. Optional: unit test with a mock MIDI source.
+
+*Implemented: src/midi/listener.ts (createMidiListener, getInputPortNames, parseCCMessage); CLI `trace midi listen <dir> [--port <index>]`; dependency `midi`; docs/midi-setup.md.*
 
 ---
 

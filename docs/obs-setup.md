@@ -5,7 +5,7 @@ TRACE Stage 1 (Capture) assumes you stream and record with OBS on your Mac. This
 ## Requirements
 
 - OBS Studio with **local recording** enabled (stream and record at the same time).
-- TRACE OBS integration installed so a TRACE session is created when recording starts and closed when it stops (see [integrations/obs/](../integrations/obs/README.md)).
+- TRACE OBS integration installed so a TRACE session is created when recording starts and closed when it stops (see [integrations/obs/](../integrations/obs/README.md)). Use **`trc`** for the CLI on macOS (system `trace` is different).
 
 ## Recommended OBS settings
 

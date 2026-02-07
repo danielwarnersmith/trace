@@ -5,9 +5,11 @@ Spec-first repository. Product behavior must conform to `trace-spec/SPEC.md` and
 
 ## Quick start
 
-- `npm install`
+- `npm install` and `npm run build`
+- To use **`trc`** in your shell: run **`npm link`** from this repo (once per clone/branch). If `trc` is not found, run `npm link` from the project root.
+- On macOS, the system has a `trace` command (kdebug); use **`trc`** for this CLI, or use `npm run dev --`:
 - `npm run dev -- --help`
-- `npm run dev -- session init ./sessions/demo`
+- `npm run dev -- session init ./sessions/demo` (or `trc session init ./sessions/demo`)
 - `npm run dev -- session close ./sessions/demo`
 - `npm run dev -- session show ./sessions/demo`
 - `npm run dev -- media add ./sessions/demo --file ./audio/take-1.m4a --kind audio --mime audio/mp4 --offset 0 --duration 120000`
@@ -20,6 +22,7 @@ Spec-first repository. Product behavior must conform to `trace-spec/SPEC.md` and
 - `npm run dev -- digest write ./sessions/demo --file ./notes/digest.md`
 - `npm run dev -- digest read ./sessions/demo`
 - `npm run dev -- action run ./sessions/demo <action-id> [--input key=value ...]`
+- `npm run dev -- midi listen ./sessions/demo [--port 0]` (or `trc midi listen ...`)
 
 ## Workspace
 
