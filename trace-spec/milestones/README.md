@@ -4,11 +4,12 @@ Milestones break [ROADMAP.md](../ROADMAP.md) into ordered, agent-ready task list
 
 ## Current milestones
 
-| Milestone | File | Goal |
-|-----------|------|------|
-| **M1** | [milestone-01-obs-capture-and-review-audio.md](milestone-01-obs-capture-and-review-audio.md) | OBS-side capture: session creation on recording start/stop, reliable local recording docs, review-audio generation and ingest. |
-| **M2** | [milestone-02-midi-marker-input.md](milestone-02-midi-marker-input.md) | MIDI marker input: listener, fixed CC → category mapping, timestamped marker writing. |
-| **M3** | [milestone-03-digest-system-enhancement.md](milestone-03-digest-system-enhancement.md) | Digest system: generate digest from timeline + transcripts + markers; log actions and outcomes in digest. |
+| Milestone | File | Goal | Status |
+|-----------|------|------|--------|
+| **M1** | [milestone-01-obs-capture-and-review-audio.md](milestone-01-obs-capture-and-review-audio.md) | OBS-side capture: session creation on recording start/stop, reliable local recording docs, review-audio generation and ingest. | Done |
+| **M2** | [milestone-02-midi-marker-input.md](milestone-02-midi-marker-input.md) | MIDI marker input: listener, fixed CC → category mapping, timestamped marker writing. | Done |
+| **M3** | [milestone-03-digest-system-enhancement.md](milestone-03-digest-system-enhancement.md) | Digest system: generate digest from timeline + transcripts + markers; log actions and outcomes in digest. | Done |
+| **M4** | [milestone-04-action-framework.md](milestone-04-action-framework.md) | Action framework (extensible): registry/discovery, draft-only outputs, optional scheduled/event-based trigger. | Next |
 
 ## Further milestones (from ROADMAP)
 
@@ -16,7 +17,6 @@ Not yet broken into milestone files; to be scoped by product-manager when needed
 
 - **iOS app (core)** — Audio playback for review files, homescreen widget for markers, tap-to-toggle voice note recording, offline-safe upload queue, digest view, action trigger UI.
 - **Background processing** — Local speech-to-text for voice notes, file-based job handling, low-priority execution.
-- **Action framework (extensible)** — Explicit user-triggered actions (already in CLI), optional scheduled/event-based actions, draft-only outputs, no publishing.
 
 ## How to use
 
