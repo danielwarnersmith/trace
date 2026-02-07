@@ -34,6 +34,15 @@ export type DigestVoiceNoteSummary = {
   transcript_text?: string;
 };
 
+/** Action run (minimal for digest). */
+export type DigestActionRun = {
+  id: string;
+  action: string;
+  created_at: string;
+  status: string;
+  error?: string;
+};
+
 /** Structured input for digest content generation. */
 export type DigestInput = {
   session: DigestSessionSummary;
@@ -41,4 +50,5 @@ export type DigestInput = {
   transcript: DigestTranscriptSegment[];
   markers: DigestMarker[];
   voice_notes: DigestVoiceNoteSummary[];
+  actions: DigestActionRun[];
 };

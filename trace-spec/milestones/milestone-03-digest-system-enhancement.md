@@ -45,7 +45,7 @@
 
 ---
 
-### 3. Wire digest generation to CLI (optional command)
+### 3. Wire digest generation to CLI (optional command) — Done
 
 **Read:** [trace-spec/codex/DIGEST.md](../codex/DIGEST.md) — "When the system writes or updates the digest, it MUST: Overwrite digest.md ... Set session.json.digest_path ... digest_updated_at ... updated_at."
 
@@ -55,9 +55,11 @@
 
 **Done when:** Running `trace digest generate <dir>` produces digest.md from timeline + transcripts + markers and updates session.json.digest_path and digest_updated_at. `trace digest read <dir>` returns the generated content.
 
+*Implemented: CLI `trace digest generate <dir>`; validates session dir, readDigestInput → generateDigestContent → writeDigest; usage updated.*
+
 ---
 
-### 4. Log actions and outcomes in digest (or link actions.jsonl to digest)
+### 4. Log actions and outcomes in digest (or link actions.jsonl to digest) — Done
 
 **Read:** [trace-spec/SPEC.md](../SPEC.md) Stage 4 — "When an action is triggered: ... records the action and its result in the digest." [trace-spec/codex/ACTIONS.md](../codex/ACTIONS.md) — action runs in actions.jsonl.
 
@@ -66,6 +68,8 @@
 **Where:** Digest generation (to-do 2) extended to read actions.jsonl and add an "Actions" or "Recent actions" section to the generated Markdown. [src/commands/action-run.ts](../../src/commands/action-run.ts) unchanged (already writes to actions.jsonl).
 
 **Done when:** Generated digest.md includes a section that lists recent action runs (id, action, status, created_at) from actions.jsonl. If actions.jsonl is missing or empty, the section is omitted or says "No actions yet."
+
+*Implemented: readDigestInput reads actions.jsonl (last 20); DigestActionRun type; generateDigestContent adds "## Recent actions" with id, action, status, created_at, or "No actions yet."*
 
 ---
 

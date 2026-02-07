@@ -13,7 +13,7 @@ function formatMs(ms: number): string {
  * Free-form Markdown; manual edits remain allowed per DIGEST codex.
  */
 export function generateDigestContent(input: DigestInput): string {
-  const { session, markers } = input;
+  const { session, markers, actions } = input;
   const lines: string[] = [];
 
   lines.push('# Session digest');
@@ -41,6 +41,18 @@ export function generateDigestContent(input: DigestInput): string {
     }
     lines.push('');
   }
+
+  lines.push('## Recent actions');
+  lines.push('');
+  if (actions.length === 0) {
+    lines.push('No actions yet.');
+  } else {
+    for (const a of actions) {
+      const err = a.error ? ` — ${a.error}` : '';
+      lines.push(`- **${a.id}** — ${a.action} — ${a.status} — ${a.created_at}${err}`);
+    }
+  }
+  lines.push('');
 
   return lines.join('\n');
 }

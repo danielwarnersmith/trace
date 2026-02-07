@@ -5,11 +5,11 @@ import { initSession } from './commands/session-init.js';
 import { closeSession } from './commands/session-close.js';
 import { showSession, formatSessionShow } from './commands/session-show.js';
 import { listMarkers, formatMarkerEntry } from './commands/markers-list.js';
-import { readDigest } from './commands/digest.js';
+import { readDigest, writeDigest } from './commands/digest.js';
+import { readDigestInput, generateDigestContent } from './digest/index.js';
 import { addMarker, addVoiceNote } from './commands/mark.js';
 import { addMedia, addReviewAudio } from './commands/media.js';
 import { transcribeSession } from './commands/transcribe.js';
-import { writeDigest } from './commands/digest.js';
 import { validateSessionDir } from './commands/validate-session.js';
 import { runAction } from './commands/action-run.js';
 import { loadCategoryMap, getCategoryForCCSync } from './midi/categories.js';
@@ -30,6 +30,7 @@ Usage:
   trace voice-note <dir> --offset <ms> --duration <ms> (--media <filename> | --media-file <path>) [--text <text>] [--marker-id <id>]
   trace digest write <dir> --file <path>
   trace digest read <dir>
+  trace digest generate <dir>
   trace action run <dir> <action-id> [--input key=value ...]
   trace midi listen <dir> [--port <index>]
   trace validate <dir>
@@ -416,6 +417,29 @@ async function main(): Promise<void> {
     }
 
     const content = await readFile(filePath, 'utf8');
+    await writeDigest(targetDir, content);
+    console.log('digest: updated');
+    process.exit(0);
+  }
+
+  if (command === 'digest' && subcommand === 'generate') {
+    const targetDir = rest[0];
+    if (!targetDir) {
+      console.error('error: missing <dir> for digest generate');
+      printUsage();
+      process.exit(1);
+    }
+
+    const report = await validateSessionDir(targetDir);
+    if (!report.ok) {
+      for (const issue of report.issues) {
+        console.error(`error: ${issue.file}: ${issue.message}`);
+      }
+      process.exit(1);
+    }
+
+    const input = await readDigestInput(targetDir);
+    const content = generateDigestContent(input);
     await writeDigest(targetDir, content);
     console.log('digest: updated');
     process.exit(0);

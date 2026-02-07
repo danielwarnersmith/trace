@@ -29,11 +29,11 @@ Build priorities and implementation areas for TRACE.
 - File-based job handling.
 - Low-priority execution.
 
-## 5. Digest system (in progress)
+## 5. Digest system — Done
 
 - Reads timeline + transcripts. — Done
-- Generates and updates a structured summary. — Done (digest generate from session data; CLI wire and actions section pending).
-- Logs actions and outcomes.
+- Generates and updates a structured summary. — Done
+- Logs actions and outcomes. — Done
 
 ## 6. Action framework (extensible)
 

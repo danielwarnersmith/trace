@@ -556,6 +556,24 @@ test('cli digest read no digest prints no digest', async () => {
   });
 });
 
+test('cli digest generate produces digest from session data', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+    await runCli(['mark', sessionDir, '--offset', '5000', '--tag', 'highlight']);
+
+    const genResult = await runCli(['digest', 'generate', sessionDir]);
+    assert.equal(genResult.code, 0, genResult.stderr);
+    assert.ok(genResult.stdout.includes('digest: updated'), genResult.stdout);
+
+    const readResult = await runCli(['digest', 'read', sessionDir]);
+    assert.equal(readResult.code, 0, readResult.stderr);
+    assert.ok(readResult.stdout.includes('# Session digest'), readResult.stdout);
+    assert.ok(readResult.stdout.includes('1') && readResult.stdout.includes('Markers'), readResult.stdout);
+    assert.ok(readResult.stdout.includes('Recent actions'), readResult.stdout);
+  });
+});
+
 test('cli voice-note --marker-id sets marker_id and updates marker voice_note_id', async () => {
   await withTempDir(async (base) => {
     const sessionDir = path.join(base, 'session');

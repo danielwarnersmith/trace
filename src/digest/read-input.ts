@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import type { DigestInput, DigestMarker, DigestSessionSummary, DigestTimelineEntry, DigestTranscriptSegment, DigestVoiceNoteSummary } from './types.js';
+import type { DigestActionRun, DigestInput, DigestMarker, DigestSessionSummary, DigestTimelineEntry, DigestTranscriptSegment, DigestVoiceNoteSummary } from './types.js';
 
 async function readJsonl<T>(filePath: string, map: (obj: Record<string, unknown>) => T): Promise<T[]> {
   try {
@@ -43,6 +43,16 @@ function mapVoiceNoteSummary(obj: Record<string, unknown>): DigestVoiceNoteSumma
   };
 }
 
+function mapActionRun(obj: Record<string, unknown>): DigestActionRun {
+  return {
+    id: typeof obj.id === 'string' ? obj.id : '',
+    action: typeof obj.action === 'string' ? obj.action : '',
+    created_at: typeof obj.created_at === 'string' ? obj.created_at : '',
+    status: typeof obj.status === 'string' ? obj.status : '',
+    error: typeof obj.error === 'string' ? obj.error : undefined,
+  };
+}
+
 /**
  * Read session directory into structured digest input.
  * Uses session.json for paths; timeline and markers are required (paths from session);
@@ -67,7 +77,9 @@ export async function readDigestInput(sessionDir: string): Promise<DigestInput> 
     duration_ms: typeof session.duration_ms === 'number' ? session.duration_ms : undefined,
   };
 
-  const [timeline, markers, transcript, voice_notes] = await Promise.all([
+  const actionsPath = path.join(resolvedDir, 'actions.jsonl');
+
+  const [timeline, markers, transcript, voice_notes, actionsRaw] = await Promise.all([
     readJsonl(path.join(resolvedDir, timeline_path), mapTimelineEntry),
     readJsonl(path.join(resolvedDir, markers_path), mapMarker),
     transcript_path
@@ -76,7 +88,10 @@ export async function readDigestInput(sessionDir: string): Promise<DigestInput> 
     voice_notes_path
       ? readJsonl(path.join(resolvedDir, voice_notes_path), mapVoiceNoteSummary)
       : Promise.resolve([]),
+    readJsonl(actionsPath, mapActionRun),
   ]);
+
+  const actions = actionsRaw.slice(-20);
 
   return {
     session: sessionSummary,
@@ -84,5 +99,6 @@ export async function readDigestInput(sessionDir: string): Promise<DigestInput> 
     transcript,
     markers,
     voice_notes,
+    actions,
   };
 }
