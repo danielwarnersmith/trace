@@ -16,8 +16,8 @@ Build priorities and implementation areas for TRACE.
 
 ## 3. iOS app (core)
 
-- Audio playback for review files.
-- Homescreen widget for markers.
+- Audio playback for review files. — Done
+- Homescreen widget for markers. — Done
 - Tap-to-toggle voice note recording.
 - Offline-safe upload queue.
 - Digest view.

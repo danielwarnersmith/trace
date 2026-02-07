@@ -49,6 +49,8 @@
 
 **Done when:** Tapping a widget button adds a marker with the correct category and current time; markers appear in markers.jsonl (after sync if queued).
 
+**Done.** SharedState (App Group), URL scheme trace://add-marker, MarkerWriter + ULID, TraceWidgetExtension (4 category links). See [trace-spec/plans/archive/m06-todo2-homescreen-widget-impl.md](../plans/archive/m06-todo2-homescreen-widget-impl.md).
+
 ---
 
 ### 3. Tap-to-toggle voice note recording

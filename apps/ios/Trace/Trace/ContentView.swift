@@ -38,6 +38,7 @@ struct ContentView: View {
                 guard let url = urls.first else { return }
                 _ = url.startAccessingSecurityScopedResource()
                 sessionRoot = url
+                SharedState.setSessionRoot(url)
                 loadSessionAndPlayback()
             case .failure(let err):
                 loadError = err.localizedDescription
@@ -102,12 +103,16 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
             Button("Open another session") {
+                SharedState.clearSessionRoot()
                 sessionRoot = nil
                 session = nil
                 self.playback = nil
                 loadError = nil
             }
             .font(.caption)
+        }
+        .onChange(of: playback.currentOffsetMs) { _, new in
+            SharedState.currentOffsetMs = new
         }
     }
 
