@@ -35,6 +35,8 @@
 
 *Design/scaffold: [trace-spec/design/ios-app.md](../design/ios-app.md) (session model, playback contract offset_ms, review audio resolution); [apps/ios/README.md](../../apps/ios/README.md). Implementation (Swift + Xcode) when iOS project is added.*
 
+**Done.** Session.swift + PlaybackService.swift + ContentView (folder picker, play/pause, currentOffsetMs). See [trace-spec/plans/archive/m06-todo1-audio-playback-impl.md](../plans/archive/m06-todo1-audio-playback-impl.md).
+
 ---
 
 ### 2. Homescreen widget for markers

@@ -38,4 +38,4 @@ Until one is chosen, the app can assume a **local session root** (e.g. sandbox o
 
 ## Current scope
 
-No Xcode project in this repo yet. Add one under `apps/ios/` (or in trace-ios) and implement to-dos 1–6 per this design and [milestone-06-ios-app-core.md](../milestones/milestone-06-ios-app-core.md).
+Xcode project exists under `apps/ios/Trace/`. To-do 1 (audio playback) is implemented: session model (Session.swift), playback service (PlaybackService.swift) with AVPlayer and currentOffsetMs, and ContentView with folder picker and play/pause UI. Implement to-dos 2–6 per this design and [milestone-06-ios-app-core.md](../milestones/milestone-06-ios-app-core.md).

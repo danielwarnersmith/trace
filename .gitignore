@@ -5,3 +5,6 @@ dist/
 .env.*
 .test-review-audio-session
 .trace-midi.json
+
+# Xcode user state
+**/xcuserdata/
