@@ -1,0 +1,14 @@
+---
+description: When editing trace-spec/, check SPEC.md and the relevant codex doc first; preserve schema compatibility and codex contracts
+globs: trace-spec/**
+alwaysApply: false
+---
+
+# Trace-spec edits
+
+When changing **trace-spec/** (schemas, codex docs, or other spec files):
+
+1. **Before editing**: Read **trace-spec/SPEC.md** and the relevant **trace-spec/codex/** doc for the area you're changing.
+2. **Preserve**: Keep schema compatibility (e.g. don't break existing JSON schema fields or required/optional contracts) and honor codex contracts (behavior and semantics described there).
+
+If adding new fields or behavior, update both the schema (if applicable) and the codex doc so they stay in sync.
