@@ -17,7 +17,7 @@
 
 ## To-dos
 
-### 1. Read timeline and transcripts (and markers) for digest input
+### 1. Read timeline and transcripts (and markers) for digest input — Done
 
 **Read:** [trace-spec/SPEC.md](../SPEC.md) Stage 4 — "Reads the session data"; ROADMAP "Reads timeline + transcripts." [trace-spec/codex/DIGEST.md](../codex/DIGEST.md).
 
@@ -27,9 +27,11 @@
 
 **Done when:** Given a session dir, the code returns a single structure containing timeline entries, transcript segments (if any), markers, and optionally voice note summaries (e.g. offset, text). Validation: run against [trace-spec/fixtures](../fixtures) or a test session; all existing JSONL files are read and parsed.
 
+*Implemented: src/digest/read-input.ts (readDigestInput); types in types.ts; uses session paths; missing optional files => [].*
+
 ---
 
-### 2. Generate structured digest content from timeline + transcripts + markers
+### 2. Generate structured digest content from timeline + transcripts + markers — Done
 
 **Read:** [trace-spec/SPEC.md](../SPEC.md) Stage 4 — "short, structured summary: session info, counts of markers, notable moments with timestamps, excerpts from voice notes." [trace-spec/codex/DIGEST.md](../codex/DIGEST.md) — format is free-form Markdown; system MUST NOT require a rigid template.
 
@@ -38,6 +40,8 @@
 **Where:** Same module as to-do 1 (e.g. `src/digest/generate.ts` or extended digest command). Use existing writeDigest from [src/commands/digest.ts](../../src/commands/digest.ts) to write the result.
 
 **Done when:** Given a session with timeline, markers, and (optionally) transcript, the generated digest.md contains session info, marker count, and at least one "notable moment" (marker with timestamp). Manual edits to digest.md remain allowed (DIGEST: "If a user edits digest.md manually, those edits are authoritative"); generation can overwrite, but the spec does not require merge—document that re-running generation overwrites, or add a "generate and append" mode later.
+
+*Implemented: src/digest/generate.ts (generateDigestContent); session info, marker count, Notable moments section; free-form Markdown.*
 
 ---
 
