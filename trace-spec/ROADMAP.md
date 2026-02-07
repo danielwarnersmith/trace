@@ -23,11 +23,11 @@ Build priorities and implementation areas for TRACE.
 - Digest view.
 - Action trigger UI.
 
-## 4. Background processing
+## 4. Background processing — Done
 
-- Local speech-to-text for voice notes.
-- File-based job handling.
-- Low-priority execution.
+- Local speech-to-text for voice notes. — Done (voice-note set-transcript; transcribe_voice_note job stub).
+- File-based job handling. — Done
+- Low-priority execution. — Done (docs: run with nice).
 
 ## 5. Digest system — Done
 

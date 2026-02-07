@@ -10,13 +10,13 @@ Milestones break [ROADMAP.md](../ROADMAP.md) into ordered, agent-ready task list
 | **M2** | [milestone-02-midi-marker-input.md](milestone-02-midi-marker-input.md) | MIDI marker input: listener, fixed CC → category mapping, timestamped marker writing. | Done |
 | **M3** | [milestone-03-digest-system-enhancement.md](milestone-03-digest-system-enhancement.md) | Digest system: generate digest from timeline + transcripts + markers; log actions and outcomes in digest. | Done |
 | **M4** | [milestone-04-action-framework.md](milestone-04-action-framework.md) | Action framework (extensible): registry/discovery, draft-only outputs, optional scheduled/event-based trigger. | Done |
+| **M5** | [milestone-05-background-processing.md](milestone-05-background-processing.md) | Background processing: voice note transcript update, file-based jobs, low-priority execution. | Done |
 
 ## Further milestones (from ROADMAP)
 
 Not yet broken into milestone files; to be scoped by product-manager when needed:
 
 - **iOS app (core)** — Audio playback for review files, homescreen widget for markers, tap-to-toggle voice note recording, offline-safe upload queue, digest view, action trigger UI.
-- **Background processing** — Local speech-to-text for voice notes, file-based job handling, low-priority execution.
 
 ## How to use
 

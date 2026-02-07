@@ -157,3 +157,37 @@ export async function addVoiceNote(sessionDir: string, input: VoiceNoteInput): P
 
   return voiceNoteId;
 }
+
+/**
+ * Update a voice note's transcript_text in voice_notes.jsonl.
+ * Reads all lines, finds the entry by id, sets transcript_text, rewrites the file.
+ */
+export async function updateVoiceNoteTranscript(
+  sessionDir: string,
+  voiceNoteId: string,
+  transcriptText: string,
+): Promise<void> {
+  const resolvedDir = path.resolve(sessionDir);
+  const sessionPath = path.join(resolvedDir, 'session.json');
+  const session = await readSession(sessionPath);
+  const voiceNotesPath = path.join(resolvedDir, (session.voice_notes_path as string) ?? 'voice_notes.jsonl');
+
+  const content = await readFile(voiceNotesPath, 'utf8');
+  const lines = content.split(/\r?\n/).filter((line) => line.trim().length > 0);
+  let found = false;
+  const updated = lines.map((line) => {
+    const obj = JSON.parse(line) as Record<string, unknown>;
+    if (obj.id === voiceNoteId) {
+      found = true;
+      return { ...obj, transcript_text: transcriptText };
+    }
+    return obj;
+  });
+  if (!found) {
+    throw new Error(`voice_note_id not found: ${voiceNoteId}`);
+  }
+  await writeFile(voiceNotesPath, updated.map((obj) => JSON.stringify(obj)).join('\n') + '\n', 'utf8');
+
+  session.updated_at = nowIso();
+  await writeSession(sessionPath, session);
+}

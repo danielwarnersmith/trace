@@ -574,6 +574,91 @@ test('cli digest generate produces digest from session data', async () => {
   });
 });
 
+test('cli voice-note set-transcript updates transcript_text', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+    const mediaDir = path.join(sessionDir, 'media');
+    await mkdir(mediaDir, { recursive: true });
+    await writeFile(path.join(mediaDir, 'note.m4a'), 'audio', 'utf8');
+    const voiceResult = await runCli([
+      'voice-note',
+      sessionDir,
+      '--offset',
+      '0',
+      '--duration',
+      '1000',
+      '--media',
+      'note.m4a',
+    ]);
+    assert.equal(voiceResult.code, 0, voiceResult.stderr);
+    const voiceNoteIdMatch = voiceResult.stdout.match(/voice-note: ([A-HJKMNP-TV-Z0-9]{26})/);
+    assert.ok(voiceNoteIdMatch, voiceResult.stdout);
+    const voiceNoteId = voiceNoteIdMatch![1];
+
+    const setResult = await runCli([
+      'voice-note',
+      'set-transcript',
+      sessionDir,
+      voiceNoteId,
+      '--text',
+      'Hello world',
+    ]);
+    assert.equal(setResult.code, 0, setResult.stderr);
+    assert.ok(setResult.stdout.includes('transcript: updated'), setResult.stdout);
+
+    const voiceNotesRaw = await readFile(path.join(sessionDir, 'voice_notes.jsonl'), 'utf8');
+    const voiceNote = JSON.parse(voiceNotesRaw.trim().split('\n')[0]) as Record<string, unknown>;
+    assert.equal(voiceNote.transcript_text, 'Hello world');
+
+    const validateResult = await runCli(['validate', sessionDir]);
+    assert.equal(validateResult.code, 0, validateResult.stderr);
+  });
+});
+
+test('cli jobs add and jobs process run transcribe_voice_note job', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+    const mediaDir = path.join(sessionDir, 'media');
+    await mkdir(mediaDir, { recursive: true });
+    await writeFile(path.join(mediaDir, 'note.m4a'), 'audio', 'utf8');
+    const voiceResult = await runCli([
+      'voice-note',
+      sessionDir,
+      '--offset',
+      '0',
+      '--duration',
+      '1000',
+      '--media',
+      'note.m4a',
+    ]);
+    assert.equal(voiceResult.code, 0, voiceResult.stderr);
+    const voiceNoteIdMatch = voiceResult.stdout.match(/voice-note: ([A-HJKMNP-TV-Z0-9]{26})/);
+    assert.ok(voiceNoteIdMatch, voiceResult.stdout);
+    const voiceNoteId = voiceNoteIdMatch![1];
+
+    const addResult = await runCli([
+      'jobs',
+      'add',
+      sessionDir,
+      'transcribe_voice_note',
+      '--voice-note-id',
+      voiceNoteId,
+    ]);
+    assert.equal(addResult.code, 0, addResult.stderr);
+    assert.ok(addResult.stdout.includes('job:'), addResult.stdout);
+
+    const processResult = await runCli(['jobs', 'process', sessionDir]);
+    assert.equal(processResult.code, 0, processResult.stderr);
+    assert.ok(processResult.stdout.includes('processed: 1'), processResult.stdout);
+
+    const voiceNotesRaw = await readFile(path.join(sessionDir, 'voice_notes.jsonl'), 'utf8');
+    const voiceNote = JSON.parse(voiceNotesRaw.trim().split('\n')[0]) as Record<string, unknown>;
+    assert.equal(voiceNote.transcript_text, '[transcribed]');
+  });
+});
+
 test('cli voice-note --marker-id sets marker_id and updates marker voice_note_id', async () => {
   await withTempDir(async (base) => {
     const sessionDir = path.join(base, 'session');

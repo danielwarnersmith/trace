@@ -7,11 +7,12 @@ import { showSession, formatSessionShow } from './commands/session-show.js';
 import { listMarkers, formatMarkerEntry } from './commands/markers-list.js';
 import { readDigest, writeDigest } from './commands/digest.js';
 import { readDigestInput, generateDigestContent } from './digest/index.js';
-import { addMarker, addVoiceNote } from './commands/mark.js';
+import { addMarker, addVoiceNote, updateVoiceNoteTranscript } from './commands/mark.js';
 import { addMedia, addReviewAudio } from './commands/media.js';
 import { transcribeSession } from './commands/transcribe.js';
 import { validateSessionDir } from './commands/validate-session.js';
 import { runAction } from './commands/action-run.js';
+import { addJob, processJobs } from './commands/jobs.js';
 import { loadCategoryMap, getCategoryForCCSync } from './midi/categories.js';
 import { createMidiListener, getInputPortNames } from './midi/listener.js';
 import { validateAllFixtures } from './validation/fixtures.js';
@@ -28,11 +29,14 @@ Usage:
   trace mark <dir> --offset <ms> [--label <label>] [--note <text>] [--tag <tag> ...] [--voice-note-id <id>]
   trace markers list <dir> [--tag <tag>] [--offset-min <ms>] [--offset-max <ms>]
   trace voice-note <dir> --offset <ms> --duration <ms> (--media <filename> | --media-file <path>) [--text <text>] [--marker-id <id>]
+  trace voice-note set-transcript <dir> <voice-note-id> (--text <text> | --file <path>)
   trace digest write <dir> --file <path>
   trace digest read <dir>
   trace digest generate <dir>
   trace action run <dir> <action-id> [--input key=value ...]
   trace midi listen <dir> [--port <index>]
+  trace jobs add <dir> <type> [--voice-note-id <id>]
+  trace jobs process <dir> [--once]
   trace validate <dir>
   trace validate-fixtures
   trace --help
@@ -369,6 +373,31 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
+  if (command === 'voice-note' && subcommand === 'set-transcript') {
+    const targetDir = rest[0];
+    const voiceNoteId = rest[1];
+    if (!targetDir || !voiceNoteId) {
+      console.error('error: missing <dir> or <voice-note-id> for voice-note set-transcript');
+      printUsage();
+      process.exit(1);
+    }
+    const text = getFlagValue(rest, '--text');
+    const filePath = getFlagValue(rest, '--file');
+    if (text && filePath) {
+      console.error('error: use --text or --file, not both');
+      process.exit(1);
+    }
+    if (!text && !filePath) {
+      console.error('error: missing --text or --file for voice-note set-transcript');
+      printUsage();
+      process.exit(1);
+    }
+    const transcriptText = text ?? (await readFile(filePath!, 'utf8'));
+    await updateVoiceNoteTranscript(targetDir, voiceNoteId, transcriptText);
+    console.log('transcript: updated');
+    process.exit(0);
+  }
+
   if (command === 'voice-note') {
     const targetDir = subcommand;
     if (!targetDir) {
@@ -494,6 +523,41 @@ async function main(): Promise<void> {
       console.error(`error: ${message}`);
       process.exit(1);
     }
+  }
+
+  if (command === 'jobs' && subcommand === 'add') {
+    const targetDir = rest[0];
+    const type = rest[1];
+    if (!targetDir || !type) {
+      console.error('error: missing <dir> or <type> for jobs add');
+      printUsage();
+      process.exit(1);
+    }
+    const payload: Record<string, unknown> = {};
+    if (type === 'transcribe_voice_note') {
+      const voiceNoteId = getFlagValue(rest, '--voice-note-id');
+      if (!voiceNoteId) {
+        console.error('error: transcribe_voice_note requires --voice-note-id');
+        process.exit(1);
+      }
+      payload.voice_note_id = voiceNoteId;
+    }
+    const id = await addJob(targetDir, type, payload);
+    console.log(`job: ${id}`);
+    process.exit(0);
+  }
+
+  if (command === 'jobs' && subcommand === 'process') {
+    const targetDir = rest[0];
+    if (!targetDir) {
+      console.error('error: missing <dir> for jobs process');
+      printUsage();
+      process.exit(1);
+    }
+    const once = rest.includes('--once');
+    const count = await processJobs(targetDir, { once });
+    console.log(`processed: ${count}`);
+    process.exit(0);
   }
 
   if (command === 'validate') {
