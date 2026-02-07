@@ -11,12 +11,13 @@ Milestones break [ROADMAP.md](../ROADMAP.md) into ordered, agent-ready task list
 | **M3** | [milestone-03-digest-system-enhancement.md](milestone-03-digest-system-enhancement.md) | Digest system: generate digest from timeline + transcripts + markers; log actions and outcomes in digest. | Done |
 | **M4** | [milestone-04-action-framework.md](milestone-04-action-framework.md) | Action framework (extensible): registry/discovery, draft-only outputs, optional scheduled/event-based trigger. | Done |
 | **M5** | [milestone-05-background-processing.md](milestone-05-background-processing.md) | Background processing: voice note transcript update, file-based jobs, low-priority execution. | Done |
+| **M6** | [milestone-06-ios-app-core.md](milestone-06-ios-app-core.md) | iOS app (core): audio playback, homescreen widget for markers, voice note recording, offline upload queue, digest view, action trigger UI. | Next |
 
 ## Further milestones (from ROADMAP)
 
 Not yet broken into milestone files; to be scoped by product-manager when needed:
 
-- **iOS app (core)** — Audio playback for review files, homescreen widget for markers, tap-to-toggle voice note recording, offline-safe upload queue, digest view, action trigger UI.
+- *(None; iOS app core is M6.)*
 
 ## How to use
 
