@@ -9,7 +9,7 @@ Milestones break [ROADMAP.md](../ROADMAP.md) into ordered, agent-ready task list
 | **M1** | [milestone-01-obs-capture-and-review-audio.md](milestone-01-obs-capture-and-review-audio.md) | OBS-side capture: session creation on recording start/stop, reliable local recording docs, review-audio generation and ingest. | Done |
 | **M2** | [milestone-02-midi-marker-input.md](milestone-02-midi-marker-input.md) | MIDI marker input: listener, fixed CC → category mapping, timestamped marker writing. | Done |
 | **M3** | [milestone-03-digest-system-enhancement.md](milestone-03-digest-system-enhancement.md) | Digest system: generate digest from timeline + transcripts + markers; log actions and outcomes in digest. | Done |
-| **M4** | [milestone-04-action-framework.md](milestone-04-action-framework.md) | Action framework (extensible): registry/discovery, draft-only outputs, optional scheduled/event-based trigger. | Next |
+| **M4** | [milestone-04-action-framework.md](milestone-04-action-framework.md) | Action framework (extensible): registry/discovery, draft-only outputs, optional scheduled/event-based trigger. | Done |
 
 ## Further milestones (from ROADMAP)
 

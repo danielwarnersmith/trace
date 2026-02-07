@@ -35,9 +35,9 @@ Build priorities and implementation areas for TRACE.
 - Generates and updates a structured summary. — Done
 - Logs actions and outcomes. — Done
 
-## 6. Action framework (extensible)
+## 6. Action framework (extensible) — Done
 
-- Explicit, user-triggered actions.
-- Optional scheduled/event-based actions.
-- Draft-only outputs.
-- No publishing.
+- Explicit, user-triggered actions. — Done
+- Optional scheduled/event-based actions. — Done (design note; out of scope for CLI).
+- Draft-only outputs. — Done
+- No publishing. — Done

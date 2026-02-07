@@ -21,7 +21,7 @@ Spec-first repository. Product behavior must conform to `trace-spec/SPEC.md` and
 - `npm run dev -- voice-note ./sessions/demo --offset 2000 --duration 3200 --media-file ./recordings/note.m4a`
 - `npm run dev -- digest write ./sessions/demo --file ./notes/digest.md`
 - `npm run dev -- digest read ./sessions/demo`
-- `npm run dev -- action run ./sessions/demo <action-id> [--input key=value ...]`
+- `npm run dev -- action run ./sessions/demo <action-id> [--input key=value ...]` — see [docs/actions.md](docs/actions.md) for adding actions.
 - `npm run dev -- midi listen ./sessions/demo [--port 0]` (or `trc midi listen ...`)
 - **MIDI category override:** Copy `.trace-midi.json.example` to `.trace-midi.json` in the repo root to override the default CC → category mapping; see [docs/midi-setup.md](docs/midi-setup.md).
 

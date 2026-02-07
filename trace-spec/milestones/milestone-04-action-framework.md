@@ -15,7 +15,7 @@
 
 ## To-dos
 
-### 1. Action registry or discovery (extensible actions)
+### 1. Action registry or discovery (extensible actions) — Done
 
 **Read:** [trace-spec/codex/ACTIONS.md](../codex/ACTIONS.md) — "Actions MUST be optional; the system may ship with zero built-in actions."
 
@@ -25,9 +25,11 @@
 
 **Done when:** Either (a) documented how to add actions (current code path), or (b) a minimal registry/config exists and `trace action run <dir> <action-id>` can invoke a registered action from config. No new built-in actions required; extensibility is the deliverable.
 
+*Implemented: docs/actions.md (Adding actions: registerAction, ActionHandler, where to call); README link to docs/actions.md.*
+
 ---
 
-### 2. Draft-only outputs (no publishing)
+### 2. Draft-only outputs (no publishing) — Done
 
 **Read:** ROADMAP — "Draft-only outputs. No publishing."
 
@@ -48,6 +50,8 @@
 **Where:** trace-spec/ (design or codex note) and/or [src/commands/session-close.ts](../../src/commands/session-close.ts) (optional post-close hook). Keep scope minimal.
 
 **Done when:** Either a design note exists for scheduled/event-based actions, or one event-based hook (e.g. post session close) is implemented and documented. No full cron/scheduler required.
+
+*Implemented: trace-spec/design/scheduled-actions.md — design note: same runAction contract; future triggers (after session close, cron, file event); out of scope for current CLI.*
 
 ---
 

@@ -6,6 +6,7 @@ Defines optional automation macros.
 
 - Actions are always user-invoked. There is no automatic background execution.
 - Actions MUST be optional; the system may ship with zero built-in actions.
+- **Draft-only outputs:** Action results MUST be written only to the session directory or a user-designated path. There is no auto-publishing (no upload, push, or side channel). The framework does not publish; handlers must not publish.
 
 ## Action runs
 
