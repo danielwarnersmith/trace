@@ -1,6 +1,11 @@
-import { access, copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { access, copyFile, mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
+import { promisify } from 'node:util';
 import { ulid } from 'ulid';
+
+const execFileAsync = promisify(execFile);
 
 export type MediaInput = {
   filePath: string;
@@ -143,4 +148,69 @@ export async function addMedia(sessionDir: string, input: MediaInput): Promise<M
   await writeSession(sessionPath, session);
 
   return { id, path: relPath };
+}
+
+/**
+ * Derive audio-only (review) file from a source (e.g. OBS recording) and ingest into session.
+ * Requires ffmpeg on PATH. Writes to a temp file, then adds via addMedia; temp file is removed.
+ */
+export async function addReviewAudio(sessionDir: string, sourcePath: string): Promise<MediaResult> {
+  const resolvedSource = path.resolve(sourcePath);
+  await access(resolvedSource);
+
+  const tempDir = os.tmpdir();
+  const tempId = ulid();
+  const tempPath = path.join(tempDir, `trace-review-audio-${tempId}.m4a`);
+
+  try {
+    await execFileAsync('ffmpeg', [
+      '-i',
+      resolvedSource,
+      '-vn',
+      '-acodec',
+      'copy',
+      '-y',
+      tempPath,
+    ]);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes('ENOENT') || msg.includes('not found')) {
+      throw new Error(
+        'ffmpeg not found; install ffmpeg and ensure it is on PATH (required for add-review-audio)',
+      );
+    }
+    throw new Error(`ffmpeg failed: ${msg}`);
+  }
+
+  let durationMs: number | undefined;
+  try {
+    const { stdout } = await execFileAsync('ffprobe', [
+      '-v',
+      'error',
+      '-show_entries',
+      'format=duration',
+      '-of',
+      'default=noprint_wrappers=1:nokey=1',
+      tempPath,
+    ]);
+    const seconds = Number.parseFloat(stdout.trim());
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      durationMs = Math.round(seconds * 1000);
+    }
+  } catch {
+    // duration optional per INGEST
+  }
+
+  try {
+    const result = await addMedia(sessionDir, {
+      filePath: tempPath,
+      kind: 'audio',
+      mime: 'audio/mp4',
+      start_offset_ms: 0,
+      duration_ms: durationMs,
+    });
+    return result;
+  } finally {
+    await unlink(tempPath).catch(() => {});
+  }
 }

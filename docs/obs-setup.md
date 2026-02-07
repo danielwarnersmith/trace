@@ -30,3 +30,13 @@ TRACE Stage 1 (Capture) assumes you stream and record with OBS on your Mac. This
 5. Later, you can ingest the OBS recording (and optionally a derived review-audio file) into that session (see milestone and roadmap).
 
 No extra UI or TRACE app interaction during the performance.
+
+## Review-audio (optional)
+
+To derive an audio-only review file from an OBS recording and add it to a session, use:
+
+```bash
+trace media add-review-audio <session_dir> --source <path_to_obs_recording>
+```
+
+This requires **ffmpeg** on your PATH. The command extracts audio from the source (video or audio) and ingests it as a media item with kind `audio`; the file is stored under the session’s `media/` directory. If ffmpeg is not installed, the command fails with a clear error.

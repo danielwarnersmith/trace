@@ -59,7 +59,7 @@
 
 ---
 
-### 4. Review-audio generation and ingest
+### 4. Review-audio generation and ingest — Done
 
 **Read:** [trace-spec/codex/INGEST.md](../codex/INGEST.md) (Media capture), [trace-spec/SPEC.md](../SPEC.md) Stage 1 — "Stores the original recording file (video + audio) and a derived audio-only review file."
 
@@ -68,6 +68,8 @@
 **Where:** New script or step in the OBS integration (after session close) or a new CLI command (e.g. `trace media add-review-audio <dir> --source <path>`). If using ffmpeg, document it as a dependency.
 
 **Done when:** For a session created from an OBS recording, session.json.media contains at least one entry with kind "audio" pointing to a derived audio-only file under media/, and that file exists and is playable. Original recording (video+audio) may also be ingested if desired; spec says "original recording file" and "derived audio-only review file" are both stored.
+
+*Implemented: `addReviewAudio()` in src/commands/media.ts; CLI `trace media add-review-audio <dir> --source <path>`; ffmpeg/ffprobe for extract and duration; docs/obs-setup.md updated.*
 
 ---
 

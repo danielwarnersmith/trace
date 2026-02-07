@@ -7,7 +7,7 @@ import { showSession, formatSessionShow } from './commands/session-show.js';
 import { listMarkers, formatMarkerEntry } from './commands/markers-list.js';
 import { readDigest } from './commands/digest.js';
 import { addMarker, addVoiceNote } from './commands/mark.js';
-import { addMedia } from './commands/media.js';
+import { addMedia, addReviewAudio } from './commands/media.js';
 import { transcribeSession } from './commands/transcribe.js';
 import { writeDigest } from './commands/digest.js';
 import { validateSessionDir } from './commands/validate-session.js';
@@ -21,6 +21,7 @@ Usage:
   trace session close <dir>
   trace session show <dir>
   trace media add <dir> --file <path> --kind <kind> --mime <mime> --offset <ms> [--duration <ms>]
+  trace media add-review-audio <dir> --source <path>
   trace transcribe <dir> --file <path> | --text <text> [--offset <ms>] [--duration <ms>]
   trace mark <dir> --offset <ms> [--label <label>] [--note <text>] [--tag <tag> ...] [--voice-note-id <id>]
   trace markers list <dir> [--tag <tag>] [--offset-min <ms>] [--offset-max <ms>]
@@ -180,6 +181,26 @@ async function main(): Promise<void> {
       start_offset_ms: offset,
       duration_ms: duration,
     });
+    console.log(`media: ${result.id} (${result.path})`);
+    process.exit(0);
+  }
+
+  if (command === 'media' && subcommand === 'add-review-audio') {
+    const targetDir = rest[0];
+    if (!targetDir) {
+      console.error('error: missing <dir> for media add-review-audio');
+      printUsage();
+      process.exit(1);
+    }
+
+    const source = getFlagValue(rest, '--source');
+    if (!source) {
+      console.error('error: missing --source for media add-review-audio');
+      printUsage();
+      process.exit(1);
+    }
+
+    const result = await addReviewAudio(targetDir, source);
     console.log(`media: ${result.id} (${result.path})`);
     process.exit(0);
   }

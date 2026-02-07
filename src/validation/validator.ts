@@ -1,4 +1,4 @@
-import Ajv2020Module from 'ajv/dist/2020.js';
+import { Ajv2020 } from 'ajv/dist/2020.js';
 import { type ErrorObject, type ValidateFunction } from 'ajv';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -12,10 +12,6 @@ export type SchemaName =
   | 'transcript'
   | 'actions';
 
-// Ajv 2020 default export is not recognized as constructable by TS with NodeNext; use type assertion
-const Ajv2020 = Ajv2020Module as unknown as new (opts?: { allErrors?: boolean; strict?: boolean }) => {
-  compile: (schema: object) => ValidateFunction;
-};
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 const schemaCache = new Map<SchemaName, ValidateFunction>();
 
