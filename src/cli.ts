@@ -252,6 +252,11 @@ async function main(): Promise<void> {
     }
 
     const categoryMap = await loadCategoryMap();
+    const startTime = session.start_time as string | undefined;
+    if (!startTime) {
+      console.error('error: session has no start_time; cannot compute offset_ms for markers.');
+      process.exit(1);
+    }
     console.error(`listening for MIDI CC on port ${portIndex}: ${portNames[portIndex]}. Session: ${sessionDir}. Ctrl+C to stop.`);
     const stop = createMidiListener({
       portIndex,
@@ -261,6 +266,16 @@ async function main(): Promise<void> {
           `midi cc channel=${cc.channel} controller=${cc.controller} value=${cc.value}` +
             (category ? ` category=${category}` : ''),
         );
+        if (category) {
+          const offset_ms = Math.round(Date.now() - new Date(startTime).getTime());
+          addMarker(sessionDir, { offset_ms, tags: [category] })
+            .then((id) => {
+              console.error(`marker: ${id}`);
+            })
+            .catch((err) => {
+              console.error(`error writing marker: ${err instanceof Error ? err.message : String(err)}`);
+            });
+        }
       },
       log: false,
     });

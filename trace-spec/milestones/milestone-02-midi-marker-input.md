@@ -44,7 +44,7 @@
 
 ---
 
-### 3. Resolve "current session" and current time for MIDI
+### 3. Resolve "current session" and current time for MIDI — Done
 
 **Read:** [trace-spec/codex/INGEST.md](../codex/INGEST.md) — session has start_time; timeline has offset_ms from session start. [trace-spec/SPEC.md](../SPEC.md) — "Markers are timestamped relative to the start of the recording."
 
@@ -54,9 +54,11 @@
 
 **Done when:** When a valid CC is received, the process can compute current offset_ms for the active session and pass (offset_ms, category) to the marker writer.
 
+*Implemented: midi listen requires session.start_time; on mapped CC computes offset_ms = Date.now() - new Date(startTime).getTime() and passes to addMarker (to-do 4).*
+
 ---
 
-### 4. Write marker on valid CC (append to markers.jsonl)
+### 4. Write marker on valid CC (append to markers.jsonl) — Done
 
 **Read:** [trace-spec/codex/MARK.md](../codex/MARK.md) — "When creating a marker or voice note, the system MUST append a new entry to the corresponding JSONL file and update session.json.updated_at." Marker: id (ULID), offset_ms, created_at, source ("user" or "system").
 
@@ -65,6 +67,8 @@
 **Where:** [src/commands/mark.ts](../../src/commands/mark.ts) or shared module used by both CLI and MIDI listener. MIDI listener calls this after resolving category and offset_ms.
 
 **Done when:** When a valid CC is received during an active session, markers.jsonl gets a new line with id, offset_ms, created_at, source "user", and category as tag/label; session.json.updated_at is updated. `trace validate <dir>` passes. `trace markers list <dir>` shows the new marker.
+
+*Implemented: on mapped CC, CLI midi listen calls addMarker(sessionDir, { offset_ms, tags: [category] }); marker id and errors logged to stderr; build and tests pass.*
 
 ---
 
