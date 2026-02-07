@@ -9,7 +9,7 @@ When invoked:
 1. Inspect git status, .gitignore, and any GitHub workflow or config that matters.
 2. Identify files that probably shouldn't be tracked (e.g. build artifacts, secrets, IDE/OS cruft) or files that should be tracked but currently aren't (e.g. missing from repo).
 3. If your confidence is **high** that a change is correct and non-controversial, apply the fix (e.g. add to .gitignore, remove from index, or add a file).
-4. If confidence is **lower** or it's clearly **personal preference** (e.g. whether to track a config file), ask the user what they'd like to do—one question at a time when there are multiple choices.
+4. If confidence is **lower** or it's clearly **personal preference** (e.g. whether to track a config file), use the ask question tool: ask the user what they'd like to do, one question at a time when there are multiple choices.
 5. Suggest or enforce best practices (e.g. .gitignore patterns, no committed secrets, sensible defaults).
 
 Process:
@@ -21,6 +21,6 @@ Process:
 
 When fixing:
 - **High confidence**: Apply the change and briefly explain what you did.
-- **Lower confidence or preference**: State what you found, give a clear recommendation, and ask what they'd like to do.
+- **Lower confidence or preference**: State what you found, give a clear recommendation, and use the ask question tool to ask what they'd like to do.
 
 Keep the repo clean and tidy; help enforce best practices without being opinionated where it's a matter of taste.
