@@ -29,7 +29,10 @@ When invoked:
 7. **Archive plans after implementation**
    - When a plan has been implemented and verified, **archive** the plan file: move it from `trace-spec/plans/` to `trace-spec/plans/archive/` (or append a suffix like `.done` or move to an `archive/` subfolder). Optionally update the milestone file to mark that to-do as done (e.g. add a "Done" note or checkmark). This keeps the active plans folder for "what's in progress" and the archive for "what's completed."
 
-8. **Handle ambiguity**
+8. **Check off implemented items in the roadmap**
+   - When you archive a plan and mark milestone to-dos done, **update trace-spec/ROADMAP.md** to reflect what has been implemented. Check off or annotate the corresponding roadmap section items (e.g. add "— Done" to bullets that are now implemented, or add a short note under a section). Keep the roadmap accurate so readers can see which build priorities are done vs pending.
+
+9. **Handle ambiguity**
    - If at any step you are unsure (e.g. which to-do to pick next, how to scope a plan, whether a tweak is appropriate), **ask the user** using the ask question tool. One question at a time; wait for the answer before continuing.
 
 Guidelines:
@@ -39,6 +42,7 @@ Guidelines:
 - **Feature branch for major features:** Create and switch to a feature branch (e.g. `feature/m01-obs-session-lifecycle`) before delegating a major feature; do this autonomously.
 - **Verify autonomously:** Run build, test, validate, and any other check commands yourself; favor getting as far as possible without asking the user. Only ask when blocked or when criteria cannot be checked programmatically.
 - **Re-delegate until it works:** Verification is mandatory; if the agent's output is incomplete or wrong, re-delegate with explicit feedback or an updated plan.
+- **Update roadmap when items are implemented:** After archiving a plan and marking milestone to-dos done, update `trace-spec/ROADMAP.md` to check off or annotate items that have been implemented (e.g. "— Done" on bullets).
 - **Minor milestone tweaks only:** Improve clarity or fix small errors; do not change scope or add new to-dos without user agreement.
 - **Discover subagents** from `.cursor/agents/` (and product-manager, debugger, etc.) when choosing who should implement; prefer specialists when they fit.
 

@@ -2,17 +2,17 @@
 
 Build priorities and implementation areas for TRACE.
 
-## 1. OBS-side capture support
+## 1. OBS-side capture support — Done
 
-- Session creation tied to recording start/stop.
+- Session creation tied to recording start/stop. — Done
 - Reliable local recording.
-- Review-audio generation.
+- Review-audio generation. — Done
 
-## 2. MIDI marker input
+## 2. MIDI marker input — Done
 
-- Single MIDI input listener.
-- Fixed CC → category mapping.
-- Timestamped marker writing.
+- Single MIDI input listener. — Done
+- Fixed CC → category mapping. — Done
+- Timestamped marker writing. — Done
 
 ## 3. iOS app (core)
 
@@ -29,10 +29,10 @@ Build priorities and implementation areas for TRACE.
 - File-based job handling.
 - Low-priority execution.
 
-## 5. Digest system
+## 5. Digest system (in progress)
 
-- Reads timeline + transcripts.
-- Generates and updates a structured summary.
+- Reads timeline + transcripts. — Done
+- Generates and updates a structured summary. — Done (digest generate from session data; CLI wire and actions section pending).
 - Logs actions and outcomes.
 
 ## 6. Action framework (extensible)
