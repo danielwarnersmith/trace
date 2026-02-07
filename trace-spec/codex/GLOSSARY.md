@@ -1,6 +1,11 @@
 # Glossary
 
-Session — One live performance and its associated data files.
+Session — One live performance and its associated data files. The session
+directory is the scope within which IDs (markers, voice notes, timeline
+entries, etc.) must be unique.
+
+TRACE repository — The session directory; the unit of storage and the scope
+of ID uniqueness. (Legacy term; prefer "session" or "session directory".)
 
 Session clock — The relative time base for a session, measured in ms from
 session start (offset_ms).

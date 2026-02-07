@@ -26,3 +26,6 @@ Optional fields:
 - error (string)
 
 If actions.jsonl does not exist, it MUST be created on the first run.
+
+Entries are ordered by append order; created_at is non-decreasing in normal
+operation.

@@ -22,9 +22,13 @@ Optional fields:
 - tags (array of tag strings)
 - voice_note_id (ULID)
 
+The product overview (SPEC) describes fixed marker categories (Highlight,
+Structure, Texture/Sample, Fix/Review); these may be represented as tags
+or label, or as a future category field.
+
 ## Voice notes
 
-Voice notes are stored in voice_notes.jsonl. Each line is a JSON object
+Voice notes are context for markers. They are stored in voice_notes.jsonl. Each line is a JSON object
 representing a voice note. If multiple entries share the same id, the last entry
 is authoritative.
 
@@ -40,6 +44,10 @@ Optional fields:
 
 - transcript_text (string)
 - marker_id (ULID)
+
+Whether marker.voice_note_id and voice_note.marker_id must be mutually
+consistent (each pointing to the other when both are set) is deferred until
+a decision is needed.
 
 ## Writes
 
