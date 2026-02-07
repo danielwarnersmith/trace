@@ -6,6 +6,7 @@ alwaysApply: true
 # Project context
 
 - **Spec**: `trace-spec/` (SPEC.md, codex/, ROADMAP.md). CLI behavior and semantics must conform to SPEC and codex; build priorities in ROADMAP.md.
+- **Milestones**: Task lists and execution in `trace-spec/milestones/`; plans and archive in `trace-spec/plans/` (eng-manager).
 - **Layout**: Implementations `src/`, tests `test/`, spec and schemas `trace-spec/`.
 - **Run**: CLI `npm run dev -- [args]`; tests `npm test`.
 

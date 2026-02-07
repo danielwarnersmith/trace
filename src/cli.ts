@@ -3,11 +3,15 @@
 import { readFile } from 'node:fs/promises';
 import { initSession } from './commands/session-init.js';
 import { closeSession } from './commands/session-close.js';
+import { showSession, formatSessionShow } from './commands/session-show.js';
+import { listMarkers, formatMarkerEntry } from './commands/markers-list.js';
+import { readDigest } from './commands/digest.js';
 import { addMarker, addVoiceNote } from './commands/mark.js';
 import { addMedia } from './commands/media.js';
 import { transcribeSession } from './commands/transcribe.js';
 import { writeDigest } from './commands/digest.js';
 import { validateSessionDir } from './commands/validate-session.js';
+import { runAction } from './commands/action-run.js';
 import { validateAllFixtures } from './validation/fixtures.js';
 
 const usage = `TRACE CLI
@@ -15,11 +19,15 @@ const usage = `TRACE CLI
 Usage:
   trace session init <dir>
   trace session close <dir>
+  trace session show <dir>
   trace media add <dir> --file <path> --kind <kind> --mime <mime> --offset <ms> [--duration <ms>]
   trace transcribe <dir> --file <path> | --text <text> [--offset <ms>] [--duration <ms>]
-  trace mark <dir> --offset <ms> [--label <label>] [--note <text>] [--tag <tag> ...]
-  trace voice-note <dir> --offset <ms> --duration <ms> --media <filename> [--text <text>]
+  trace mark <dir> --offset <ms> [--label <label>] [--note <text>] [--tag <tag> ...] [--voice-note-id <id>]
+  trace markers list <dir> [--tag <tag>] [--offset-min <ms>] [--offset-max <ms>]
+  trace voice-note <dir> --offset <ms> --duration <ms> (--media <filename> | --media-file <path>) [--text <text>] [--marker-id <id>]
   trace digest write <dir> --file <path>
+  trace digest read <dir>
+  trace action run <dir> <action-id> [--input key=value ...]
   trace validate <dir>
   trace validate-fixtures
   trace --help
@@ -128,6 +136,19 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
+  if (command === 'session' && subcommand === 'show') {
+    const targetDir = rest[0];
+    if (!targetDir) {
+      console.error('error: missing <dir> for session show');
+      printUsage();
+      process.exit(1);
+    }
+
+    const result = await showSession(targetDir);
+    console.log(formatSessionShow(result));
+    process.exit(0);
+  }
+
   if (command === 'media' && subcommand === 'add') {
     const targetDir = rest[0];
     if (!targetDir) {
@@ -198,9 +219,45 @@ async function main(): Promise<void> {
     const label = getFlagValue(rest, '--label');
     const note = getFlagValue(rest, '--note');
     const tags = getFlagValues(rest, '--tag');
+    const voiceNoteId = getFlagValue(rest, '--voice-note-id');
 
-    const id = await addMarker(targetDir, { offset_ms: offset, label, note, tags });
+    const id = await addMarker(targetDir, {
+      offset_ms: offset,
+      label,
+      note,
+      tags,
+      voice_note_id: voiceNoteId ?? undefined,
+    });
     console.log(`marker: ${id}`);
+    process.exit(0);
+  }
+
+  if (command === 'markers' && subcommand === 'list') {
+    const targetDir = rest[0];
+    if (!targetDir) {
+      console.error('error: missing <dir> for markers list');
+      printUsage();
+      process.exit(1);
+    }
+
+    const tag = getFlagValue(rest, '--tag');
+    const offsetMin = getFlagValue(rest, '--offset-min');
+    const offsetMax = getFlagValue(rest, '--offset-max');
+
+    const options = {
+      tag: tag ?? undefined,
+      offset_min_ms: offsetMin !== undefined ? parseNonNegativeInt(offsetMin, 'offset-min') : undefined,
+      offset_max_ms: offsetMax !== undefined ? parseNonNegativeInt(offsetMax, 'offset-max') : undefined,
+    };
+
+    const entries = await listMarkers(targetDir, options);
+    if (entries.length === 0) {
+      console.log('no markers');
+    } else {
+      for (const entry of entries) {
+        console.log(formatMarkerEntry(entry));
+      }
+    }
     process.exit(0);
   }
 
@@ -215,17 +272,24 @@ async function main(): Promise<void> {
     const offset = parseNonNegativeInt(getFlagValue(rest, '--offset'), 'offset');
     const duration = parseNonNegativeInt(getFlagValue(rest, '--duration'), 'duration');
     const media = getFlagValue(rest, '--media');
+    const mediaFile = getFlagValue(rest, '--media-file');
     const text = getFlagValue(rest, '--text');
+    const markerId = getFlagValue(rest, '--marker-id');
 
-    if (!media) {
-      throw new Error('missing media filename');
+    if (!media && !mediaFile) {
+      throw new Error('missing --media <filename> or --media-file <path>');
+    }
+    if (media && mediaFile) {
+      throw new Error('use either --media or --media-file, not both');
     }
 
     const id = await addVoiceNote(targetDir, {
       offset_ms: offset,
       duration_ms: duration,
-      media_filename: media,
+      media_filename: media ?? undefined,
+      media_file_path: mediaFile ?? undefined,
       transcript_text: text,
+      marker_id: markerId ?? undefined,
     });
     console.log(`voice-note: ${id}`);
     process.exit(0);
@@ -248,6 +312,57 @@ async function main(): Promise<void> {
     await writeDigest(targetDir, content);
     console.log('digest: updated');
     process.exit(0);
+  }
+
+  if (command === 'digest' && subcommand === 'read') {
+    const targetDir = rest[0];
+    if (!targetDir) {
+      console.error('error: missing <dir> for digest read');
+      printUsage();
+      process.exit(1);
+    }
+
+    const content = await readDigest(targetDir);
+    if (content === null) {
+      console.log('no digest');
+    } else {
+      process.stdout.write(content);
+    }
+    process.exit(0);
+  }
+
+  if (command === 'action' && subcommand === 'run') {
+    const targetDir = rest[0];
+    const actionId = rest[1];
+    if (!targetDir || !actionId) {
+      console.error('error: missing <dir> or <action-id> for action run');
+      printUsage();
+      process.exit(1);
+    }
+
+    const inputPairs = getFlagValues(rest, '--input');
+    const inputs: Record<string, string> = {};
+    for (const pair of inputPairs) {
+      const eq = pair.indexOf('=');
+      if (eq > 0) {
+        inputs[pair.slice(0, eq)] = pair.slice(eq + 1);
+      }
+    }
+
+    try {
+      const result = await runAction(targetDir, actionId, inputs);
+      if (result.status === 'succeeded') {
+        console.log(`action: ${actionId} succeeded (${result.id})`);
+        process.exit(0);
+      } else {
+        console.error(`action: ${actionId} failed (${result.id})`);
+        process.exit(1);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`error: ${message}`);
+      process.exit(1);
+    }
   }
 
   if (command === 'validate') {

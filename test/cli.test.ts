@@ -100,6 +100,10 @@ test('mark, voice-note, and digest update session data', async () => {
     });
     assert.equal(typeof markerId, 'string');
 
+    const mediaDir = path.join(sessionDir, 'media');
+    await mkdir(mediaDir, { recursive: true });
+    await writeFile(path.join(mediaDir, 'note.m4a'), 'voice', 'utf8');
+
     const voiceNoteId = await addVoiceNote(sessionDir, {
       offset_ms: 2000,
       duration_ms: 3200,
@@ -144,6 +148,14 @@ test('transcribe writes transcript when audio media exists', async () => {
   await withTempDir(async (base) => {
     const sessionDir = path.join(base, 'session');
     await initSession(sessionDir);
+
+    const mediaDir = path.join(sessionDir, 'media');
+    await mkdir(mediaDir, { recursive: true });
+    await writeFile(
+      path.join(mediaDir, '01J9Z2J8G8QK7F4M1N1E5J3Z7N.m4a'),
+      'audio',
+      'utf8',
+    );
 
     const sessionPath = path.join(sessionDir, 'session.json');
     const sessionRaw = await readFile(sessionPath, 'utf8');
@@ -296,6 +308,10 @@ test('cli mark, voice-note, and digest parse flags', async () => {
     ]);
     assert.equal(markResult.code, 0, markResult.stderr);
 
+    const mediaDir = path.join(sessionDir, 'media');
+    await mkdir(mediaDir, { recursive: true });
+    await writeFile(path.join(mediaDir, 'note.m4a'), 'voice', 'utf8');
+
     const voiceResult = await runCli([
       'voice-note',
       sessionDir,
@@ -416,6 +432,355 @@ test('cli transcribe accepts --file', async () => {
 
     const result = await runCli(['transcribe', sessionDir, '--file', transcriptFile]);
     assert.equal(result.code, 0, result.stderr);
+
+    const validateResult = await runCli(['validate', sessionDir]);
+    assert.equal(validateResult.code, 0, validateResult.stderr);
+  });
+});
+
+test('cli session show after init includes id status start_time', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+
+    const result = await runCli(['session', 'show', sessionDir]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.ok(result.stdout.includes('id:'), result.stdout);
+    assert.ok(result.stdout.includes('status: active'), result.stdout);
+    assert.ok(result.stdout.includes('start_time:'), result.stdout);
+  });
+});
+
+test('cli session show after media and marker includes media_count and marker_count', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+
+    const mediaFile = path.join(base, 'audio.m4a');
+    await writeFile(mediaFile, 'audio', 'utf8');
+    await runCli([
+      'media',
+      'add',
+      sessionDir,
+      '--file',
+      mediaFile,
+      '--kind',
+      'audio',
+      '--mime',
+      'audio/mp4',
+      '--offset',
+      '0',
+    ]);
+    await runCli(['mark', sessionDir, '--offset', '500', '--label', 'Intro']);
+
+    const result = await runCli(['session', 'show', sessionDir]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.ok(result.stdout.includes('media_count: 1'), result.stdout);
+    assert.ok(result.stdout.includes('marker_count: 1'), result.stdout);
+  });
+});
+
+test('cli session show invalid dir exits non-zero', async () => {
+  await withTempDir(async (base) => {
+    const badDir = path.join(base, 'nonexistent');
+    const result = await runCli(['session', 'show', badDir]);
+    assert.equal(result.code, 1);
+    assert.ok(result.stderr.length > 0, result.stderr);
+  });
+});
+
+test('cli markers list after adding markers shows id and offset', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+    await runCli(['mark', sessionDir, '--offset', '100', '--label', 'A']);
+    await runCli(['mark', sessionDir, '--offset', '200', '--label', 'B', '--tag', 'practice']);
+
+    const result = await runCli(['markers', 'list', sessionDir]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.ok(result.stdout.includes('100'), result.stdout);
+    assert.ok(result.stdout.includes('200'), result.stdout);
+    assert.ok(result.stdout.includes('A'), result.stdout);
+    assert.ok(result.stdout.includes('B'), result.stdout);
+  });
+});
+
+test('cli markers list empty produces no markers', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+
+    const result = await runCli(['markers', 'list', sessionDir]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.ok(result.stdout.includes('no markers'), result.stdout);
+  });
+});
+
+test('cli markers list --tag filters by tag', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+    await runCli(['mark', sessionDir, '--offset', '100', '--tag', 'warmup']);
+    await runCli(['mark', sessionDir, '--offset', '200', '--tag', 'practice']);
+
+    const result = await runCli(['markers', 'list', sessionDir, '--tag', 'warmup']);
+    assert.equal(result.code, 0, result.stderr);
+    assert.ok(result.stdout.includes('100'), result.stdout);
+    assert.equal((result.stdout.match(/100/g) ?? []).length, 1);
+  });
+});
+
+test('cli digest read after write returns content', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+    const digestFile = path.join(base, 'digest.md');
+    const content = '# Session notes\n\nKey moment at 1:20.';
+    await writeFile(digestFile, content, 'utf8');
+    await runCli(['digest', 'write', sessionDir, '--file', digestFile]);
+
+    const result = await runCli(['digest', 'read', sessionDir]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, content);
+  });
+});
+
+test('cli digest read no digest prints no digest', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+
+    const result = await runCli(['digest', 'read', sessionDir]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.ok(result.stdout.includes('no digest'), result.stdout);
+  });
+});
+
+test('cli voice-note --marker-id sets marker_id and updates marker voice_note_id', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+    const markResult = await runCli([
+      'mark',
+      sessionDir,
+      '--offset',
+      '1000',
+      '--label',
+      'Checkpoint',
+    ]);
+    assert.equal(markResult.code, 0, markResult.stderr);
+    const markerIdMatch = markResult.stdout.match(/marker: ([A-HJKMNP-TV-Z0-9]{26})/);
+    assert.ok(markerIdMatch, markResult.stdout);
+    const markerId = markerIdMatch![1];
+
+    const mediaDir = path.join(sessionDir, 'media');
+    await mkdir(mediaDir, { recursive: true });
+    await writeFile(path.join(mediaDir, 'note.m4a'), 'voice', 'utf8');
+    const voiceResult = await runCli([
+      'voice-note',
+      sessionDir,
+      '--offset',
+      '1000',
+      '--duration',
+      '2000',
+      '--media',
+      'note.m4a',
+      '--marker-id',
+      markerId,
+    ]);
+    assert.equal(voiceResult.code, 0, voiceResult.stderr);
+    const voiceNoteIdMatch = voiceResult.stdout.match(/voice-note: ([A-HJKMNP-TV-Z0-9]{26})/);
+    assert.ok(voiceNoteIdMatch, voiceResult.stdout);
+    const voiceNoteId = voiceNoteIdMatch![1];
+
+    const voiceNotesRaw = await readFile(path.join(sessionDir, 'voice_notes.jsonl'), 'utf8');
+    const voiceNoteLine = voiceNotesRaw.trim().split('\n').pop()!;
+    const voiceNote = JSON.parse(voiceNoteLine) as Record<string, unknown>;
+    assert.equal(voiceNote.marker_id, markerId);
+
+    const markersRaw = await readFile(path.join(sessionDir, 'markers.jsonl'), 'utf8');
+    const markerLines = markersRaw.trim().split('\n').filter(Boolean);
+    const lastMarkerLine = markerLines[markerLines.length - 1];
+    const lastMarker = JSON.parse(lastMarkerLine) as Record<string, unknown>;
+    assert.equal(lastMarker.voice_note_id, voiceNoteId);
+
+    const validateResult = await runCli(['validate', sessionDir]);
+    assert.equal(validateResult.code, 0, validateResult.stderr);
+  });
+});
+
+test('cli voice-note invalid --marker-id exits non-zero', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+    const mediaDir = path.join(sessionDir, 'media');
+    await mkdir(mediaDir, { recursive: true });
+    await writeFile(path.join(mediaDir, 'note.m4a'), 'voice', 'utf8');
+
+    const result = await runCli([
+      'voice-note',
+      sessionDir,
+      '--offset',
+      '0',
+      '--duration',
+      '1000',
+      '--media',
+      'note.m4a',
+      '--marker-id',
+      '01J9Z2J8G8QK7F4M1N1E5J3Z7X',
+    ]);
+    assert.equal(result.code, 1);
+    assert.ok(result.stderr.includes('marker_id not found') || result.stderr.includes('error'), result.stderr);
+  });
+});
+
+test('cli mark --voice-note-id sets voice_note_id on marker', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+    const mediaDir = path.join(sessionDir, 'media');
+    await mkdir(mediaDir, { recursive: true });
+    await writeFile(path.join(mediaDir, 'note.m4a'), 'voice', 'utf8');
+    const voiceResult = await runCli([
+      'voice-note',
+      sessionDir,
+      '--offset',
+      '500',
+      '--duration',
+      '1500',
+      '--media',
+      'note.m4a',
+    ]);
+    assert.equal(voiceResult.code, 0, voiceResult.stderr);
+    const voiceNoteIdMatch = voiceResult.stdout.match(/voice-note: ([A-HJKMNP-TV-Z0-9]{26})/);
+    assert.ok(voiceNoteIdMatch, voiceResult.stdout);
+    const voiceNoteId = voiceNoteIdMatch![1];
+
+    const markResult = await runCli([
+      'mark',
+      sessionDir,
+      '--offset',
+      '500',
+      '--label',
+      'Linked',
+      '--voice-note-id',
+      voiceNoteId,
+    ]);
+    assert.equal(markResult.code, 0, markResult.stderr);
+
+    const markersRaw = await readFile(path.join(sessionDir, 'markers.jsonl'), 'utf8');
+    const lastMarkerLine = markersRaw.trim().split('\n').filter(Boolean).pop()!;
+    const marker = JSON.parse(lastMarkerLine) as Record<string, unknown>;
+    assert.equal(marker.voice_note_id, voiceNoteId);
+
+    const validateResult = await runCli(['validate', sessionDir]);
+    assert.equal(validateResult.code, 0, validateResult.stderr);
+  });
+});
+
+test('cli mark invalid --voice-note-id exits non-zero', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+
+    const result = await runCli([
+      'mark',
+      sessionDir,
+      '--offset',
+      '0',
+      '--voice-note-id',
+      '01J9Z2J8G8QK7F4M1N1E5J3Z7X',
+    ]);
+    assert.equal(result.code, 1);
+    assert.ok(result.stderr.includes('voice_note_id not found') || result.stderr.includes('error'), result.stderr);
+  });
+});
+
+test('cli action run unknown action exits non-zero and writes actions.jsonl', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+
+    const result = await runCli(['action', 'run', sessionDir, 'unknown_action']);
+    assert.equal(result.code, 1);
+    assert.ok(result.stderr.includes('unknown action') || result.stderr.includes('error'), result.stderr);
+
+    const actionsPath = path.join(sessionDir, 'actions.jsonl');
+    const content = await readFile(actionsPath, 'utf8');
+    const lines = content.trim().split('\n').filter(Boolean);
+    assert.ok(lines.length >= 2, 'expected at least started and failed entries');
+    const started = JSON.parse(lines[0]) as Record<string, unknown>;
+    const failed = JSON.parse(lines[lines.length - 1]) as Record<string, unknown>;
+    assert.equal(started.status, 'started');
+    assert.equal(started.action, 'unknown_action');
+    assert.equal(failed.status, 'failed');
+    assert.equal(failed.action, 'unknown_action');
+  });
+});
+
+test('cli action run creates actions.jsonl on first run', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+
+    await runCli(['action', 'run', sessionDir, 'nonexistent_action']);
+
+    const actionsPath = path.join(sessionDir, 'actions.jsonl');
+    const content = await readFile(actionsPath, 'utf8');
+    assert.ok(content.length > 0);
+    const lines = content.trim().split('\n').filter(Boolean);
+    assert.ok(lines.length >= 1);
+  });
+});
+
+test('action run entries validate against actions schema', async () => {
+  const { validateJson } = await import('../src/validation/validator.js');
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+    await runCli(['action', 'run', sessionDir, 'unknown_action']);
+
+    const actionsPath = path.join(sessionDir, 'actions.jsonl');
+    const content = await readFile(actionsPath, 'utf8');
+    const lines = content.trim().split('\n').filter(Boolean);
+    for (const line of lines) {
+      const entry = JSON.parse(line) as unknown;
+      const result = await validateJson('actions', entry);
+      assert.equal(result.ok, true, `actions schema: ${JSON.stringify(result.errors)}`);
+    }
+  });
+});
+
+test('cli voice-note --media-file copies file to media and sets media_path', async () => {
+  await withTempDir(async (base) => {
+    const sessionDir = path.join(base, 'session');
+    await runCli(['session', 'init', sessionDir]);
+    const recordingPath = path.join(base, 'recording.m4a');
+    await writeFile(recordingPath, 'voice recording content', 'utf8');
+
+    const result = await runCli([
+      'voice-note',
+      sessionDir,
+      '--offset',
+      '0',
+      '--duration',
+      '3000',
+      '--media-file',
+      recordingPath,
+    ]);
+    assert.equal(result.code, 0, result.stderr);
+    const voiceNoteIdMatch = result.stdout.match(/voice-note: ([A-HJKMNP-TV-Z0-9]{26})/);
+    assert.ok(voiceNoteIdMatch, result.stdout);
+    const voiceNoteId = voiceNoteIdMatch![1];
+
+    const voiceNotesRaw = await readFile(path.join(sessionDir, 'voice_notes.jsonl'), 'utf8');
+    const voiceNoteLine = voiceNotesRaw.trim().split('\n').pop()!;
+    const voiceNote = JSON.parse(voiceNoteLine) as Record<string, unknown>;
+    assert.equal(voiceNote.media_path, `media/${voiceNoteId}.m4a`);
+
+    const mediaPath = path.join(sessionDir, 'media', `${voiceNoteId}.m4a`);
+    const mediaContent = await readFile(mediaPath, 'utf8');
+    assert.equal(mediaContent, 'voice recording content');
 
     const validateResult = await runCli(['validate', sessionDir]);
     assert.equal(validateResult.code, 0, validateResult.stderr);
