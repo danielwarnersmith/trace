@@ -23,6 +23,7 @@ Spec-first repository. Product behavior must conform to `trace-spec/SPEC.md` and
 - `npm run dev -- digest read ./sessions/demo`
 - `npm run dev -- action run ./sessions/demo <action-id> [--input key=value ...]`
 - `npm run dev -- midi listen ./sessions/demo [--port 0]` (or `trc midi listen ...`)
+- **MIDI category override:** Copy `.trace-midi.json.example` to `.trace-midi.json` in the repo root to override the default CC → category mapping; see [docs/midi-setup.md](docs/midi-setup.md).
 
 ## Workspace
 

@@ -18,7 +18,30 @@ trc midi listen <session_dir> [--port <index>]
 - `<session_dir>` — Path to the TRACE session directory. Must exist and validate; session should be active for live markers (later to-dos will write markers).
 - `--port <index>` — MIDI input port index (default: 0). List available ports by running the command; if no ports are found, you’ll see an error listing requirements.
 
-The process stays running and logs each received CC to stderr (channel, controller number, value). Press Ctrl+C to stop.
+The process stays running and logs each received CC to stderr (channel, controller number, value, and category when mapped). Press Ctrl+C to stop.
+
+## CC → category mapping
+
+Each CC can be mapped to one of four categories: **highlight**, **structure**, **texture-sample**, **fix-review** (used later when writing markers). The default mapping (channel 0) is:
+
+| CC number | Category        |
+|----------:|-----------------|
+| 20        | highlight       |
+| 21        | structure       |
+| 22        | texture-sample  |
+| 23        | fix-review      |
+
+- **Default config:** `trace-spec/midi-categories.json`. Keys are `"channel:controller"` (e.g. `"0:20"`); values are category tag strings.
+
+### Override the default mapping
+
+To use your own CC → category mapping (e.g. for different hardware), **copy `.trace-midi.json.example` to `.trace-midi.json`** in the **repo root** (the directory where you run `trc` from):
+
+```bash
+cp .trace-midi.json.example .trace-midi.json
+```
+
+Then edit `.trace-midi.json`. Same format: keys are `"channel:controller"` (e.g. `"1:30"`), values are category tags (`highlight`, `structure`, `texture-sample`, `fix-review`). If `.trace-midi.json` exists, it **replaces** the default file entirely. The example file is committed; `.trace-midi.json` is gitignored so your local override is not committed.
 
 ## OS and ports
 
@@ -26,6 +49,6 @@ The process stays running and logs each received CC to stderr (channel, controll
 - **Windows:** Uses the system MIDI API. Ensure your device is installed and visible as a MIDI input.
 - **Linux:** Not officially documented; RtMidi (used by the `midi` package) supports ALSA and JACK.
 
-## Current behavior (M2 to-do 1)
+## Current behavior (M2 to-dos 1–2)
 
-The listener **only receives and logs** MIDI CC. It does not write markers yet. Marker writing (and CC → category mapping) are later to-dos in [milestone-02-midi-marker-input.md](../trace-spec/milestones/milestone-02-midi-marker-input.md).
+The listener receives MIDI CC and resolves category from the mapping (to-do 2). It **does not write markers yet**; marker writing is to-do 4 in [milestone-02-midi-marker-input.md](../trace-spec/milestones/milestone-02-midi-marker-input.md).

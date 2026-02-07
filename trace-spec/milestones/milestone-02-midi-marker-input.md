@@ -30,7 +30,7 @@
 
 ---
 
-### 2. Fixed CC → category mapping
+### 2. Fixed CC → category mapping — Done
 
 **Read:** [trace-spec/SPEC.md](../SPEC.md) Stage 2 — "a fixed category: Highlight, Structure, Texture / Sample, Fix / Review"; [trace-spec/codex/MARK.md](../codex/MARK.md) — categories as tags or label.
 
@@ -39,6 +39,8 @@
 **Where:** Config file (e.g. `trace-spec/midi-categories.json` or project root `.trace-midi.json`) or options in the MIDI listener module. No new schema field unless you add category to marker schema; use tag(s) or label for now per MARK.
 
 **Done when:** Given a CC event, the system resolves a single category and can pass it to the marker writer (e.g. as a tag "highlight" or label "Highlight").
+
+*Implemented: trace-spec/midi-categories.json (default 0:20–23 → highlight/structure/texture-sample/fix-review); src/midi/categories.ts (loadCategoryMap, getCategoryForCC, getCategoryForCCSync); override via .trace-midi.json in repo root; CLI midi listen logs category when mapped; docs/midi-setup.md updated.*
 
 ---
 

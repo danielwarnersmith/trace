@@ -12,6 +12,7 @@ import { transcribeSession } from './commands/transcribe.js';
 import { writeDigest } from './commands/digest.js';
 import { validateSessionDir } from './commands/validate-session.js';
 import { runAction } from './commands/action-run.js';
+import { loadCategoryMap, getCategoryForCCSync } from './midi/categories.js';
 import { createMidiListener, getInputPortNames } from './midi/listener.js';
 import { validateAllFixtures } from './validation/fixtures.js';
 
@@ -250,8 +251,19 @@ async function main(): Promise<void> {
       process.exit(1);
     }
 
+    const categoryMap = await loadCategoryMap();
     console.error(`listening for MIDI CC on port ${portIndex}: ${portNames[portIndex]}. Session: ${sessionDir}. Ctrl+C to stop.`);
-    const stop = createMidiListener({ portIndex, onCC: () => {}, log: true });
+    const stop = createMidiListener({
+      portIndex,
+      onCC: (cc) => {
+        const category = getCategoryForCCSync(categoryMap, cc.channel, cc.controller, cc.value);
+        console.error(
+          `midi cc channel=${cc.channel} controller=${cc.controller} value=${cc.value}` +
+            (category ? ` category=${category}` : ''),
+        );
+      },
+      log: false,
+    });
     process.on('SIGINT', () => {
       stop();
       process.exit(0);

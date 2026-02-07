@@ -4,3 +4,4 @@ dist/
 .env
 .env.*
 .test-review-audio-session
+.trace-midi.json
