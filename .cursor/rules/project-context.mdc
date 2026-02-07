@@ -1,0 +1,14 @@
+---
+description: Where the spec lives, how to run CLI/tests, and that behavior conforms to spec/codex
+alwaysApply: true
+---
+
+# Project context
+
+- **Spec**: `trace-spec/` (SPEC.md + codex/). CLI behavior and semantics must conform to these.
+- **Layout**: Implementations `src/`, tests `test/`, spec and schemas `trace-spec/`.
+- **Run**: CLI `npm run dev -- [args]`; tests `npm test`.
+
+When changing behavior or adding features, read the relevant spec and codex doc first; keep implementations and schemas in sync.
+
+When adding new commands or spec sections, prompt with **"Use conductor"** or **"Check trace-spec/codex first"** so the right agent and context load (e.g. plan-optimizer for design, debugger for failures).

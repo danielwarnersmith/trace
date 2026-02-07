@@ -1,0 +1,15 @@
+---
+description: Use the conductor subagent for anything other than the quickest and least intense workflows
+alwaysApply: true
+---
+
+# Conductor delegation
+
+For anything other than the **quickest and least intense** workflows, delegate to the **conductor** subagent.
+
+- **Quick / least intense**: Single, trivial question; one-line fix; obvious yes/no; lookup or clarification. Handle these directly.
+- **Use conductor**: Multi-step work, mixed domains, planning, refactors, cleanup, or when the right specialist (debugger, git-doctor, plan-optimizer, workflow-coach, etc.) would help. Invoke the conductor so it can route to the appropriate subagent(s).
+
+**Explicit @-mentions for delegation**: When you want routing, try **@.cursor/agents Use the conductor to [task]** so agent context stays in scope.
+
+Example: "Fix this bug" → consider conductor (debugger may apply). "What does this function return?" → handle directly.

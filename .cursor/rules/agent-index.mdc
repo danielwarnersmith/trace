@@ -1,0 +1,14 @@
+---
+description: When adding a new subagent in .cursor/agents/, update the agent index
+globs: .cursor/agents/**
+alwaysApply: false
+---
+
+# Agent index
+
+When you add a new subagent file under `.cursor/agents/` (e.g. `my-agent.md`), update **`.cursor/agents/README.md`** so the index stays current:
+
+1. Add a row to the table with the agent **name** (from frontmatter `name`) and a **one-line purpose** (from frontmatter `description`, condensed if needed).
+2. Keep the table sorted by agent name, or keep conductor first and the rest alphabetical.
+
+This helps both humans and the model choose the right specialist.
