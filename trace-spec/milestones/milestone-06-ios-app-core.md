@@ -77,6 +77,8 @@
 
 **Done when:** Markers and voice notes created offline are persisted in the queue and successfully written to the session when back online; no data loss when app is killed and restarted before upload.
 
+**Done.** PendingMarkers (App Group); handleAddMarkerURL queues when no session or write fails; loadSessionAndPlayback flushes PendingMarkers and PendingVoiceNotes. See [trace-spec/plans/archive/m06-todo4-offline-upload-queue-impl.md](../plans/archive/m06-todo4-offline-upload-queue-impl.md).
+
 ---
 
 ### 5. Digest view

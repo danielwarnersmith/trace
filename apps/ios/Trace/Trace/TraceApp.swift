@@ -27,8 +27,13 @@ struct TraceApp: App {
               let tag = comp.queryItems?.first(where: { $0.name == "tag" })?.value,
               !tag.isEmpty else { return }
         let normalizedTag = tag.lowercased().replacingOccurrences(of: " ", with: "_")
-        guard let sessionRoot = SharedState.resolveSessionRoot() else { return }
         let offsetMs = SharedState.currentOffsetMs
-        _ = appendMarker(sessionRoot: sessionRoot, offsetMs: offsetMs, tag: normalizedTag)
+        if let sessionRoot = SharedState.resolveSessionRoot() {
+            if appendMarker(sessionRoot: sessionRoot, offsetMs: offsetMs, tag: normalizedTag) != nil {
+                PendingMarkers.add(tag: normalizedTag, offsetMs: offsetMs)
+            }
+        } else {
+            PendingMarkers.add(tag: normalizedTag, offsetMs: offsetMs)
+        }
     }
 }

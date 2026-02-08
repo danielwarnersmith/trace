@@ -169,6 +169,7 @@ struct ContentView: View {
             let svc = PlaybackService(sessionRoot: root, session: s)
             svc.load()
             playback = svc
+            _ = PendingMarkers.flush(sessionRoot: root)
             _ = PendingVoiceNotes.flush(sessionRoot: root)
         } catch {
             loadError = error.localizedDescription
