@@ -8,10 +8,17 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+private let voiceNoteDateFormatter: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return f
+}()
+
 struct ContentView: View {
     @State private var sessionRoot: URL?
     @State private var session: Session?
     @State private var playback: PlaybackService?
+    @StateObject private var recording = RecordingService()
     @State private var showFolderPicker = false
     @State private var loadError: String?
 
@@ -102,6 +109,20 @@ struct ContentView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            Button(action: { toggleVoiceNote(playback: playback) }) {
+                HStack(spacing: 6) {
+                    Image(systemName: recording.isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                        .font(.title2)
+                    Text(recording.isRecording ? "Stop voice note" : "Voice note")
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(recording.isRecording ? .red : .accentColor)
+            if let err = recording.error {
+                Text(err)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             Button("Open another session") {
                 SharedState.clearSessionRoot()
                 sessionRoot = nil
@@ -116,6 +137,29 @@ struct ContentView: View {
         }
     }
 
+    private func toggleVoiceNote(playback: PlaybackService) {
+        if recording.isRecording {
+            guard let result = recording.stopRecording() else { return }
+            let id = ulid()
+            let mediaPath = "media/\(id).m4a"
+            let createdAt = voiceNoteDateFormatter.string(from: Date())
+            let payload = VoiceNotePayload(
+                id: id,
+                created_at: createdAt,
+                media_path: mediaPath,
+                offset_ms: result.offsetMs,
+                duration_ms: result.durationMs
+            )
+            if let root = sessionRoot, appendVoiceNote(sessionRoot: root, payload: payload, audioSourceURL: result.fileURL) == nil {
+                _ = PendingVoiceNotes.flush(sessionRoot: root)
+            } else {
+                PendingVoiceNotes.add(payload: payload, audioSourceURL: result.fileURL)
+            }
+        } else {
+            _ = recording.startRecording(offsetMs: playback.currentOffsetMs)
+        }
+    }
+
     private func loadSessionAndPlayback() {
         loadError = nil
         guard let root = sessionRoot else { return }
@@ -125,6 +169,7 @@ struct ContentView: View {
             let svc = PlaybackService(sessionRoot: root, session: s)
             svc.load()
             playback = svc
+            _ = PendingVoiceNotes.flush(sessionRoot: root)
         } catch {
             loadError = error.localizedDescription
         }

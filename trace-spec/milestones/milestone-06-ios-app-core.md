@@ -63,6 +63,8 @@
 
 **Done when:** User can tap to start/stop a voice note; recording is stored and a voice note entry is created with correct offset_ms and duration_ms; file and entry are uploaded to session when online (or queued).
 
+**Done.** RecordingService (AVAudioRecorder), VoiceNoteWriter, PendingVoiceNotes queue, Voice Note button in ContentView. See [trace-spec/plans/archive/m06-todo3-voice-note-recording-impl.md](../plans/archive/m06-todo3-voice-note-recording-impl.md).
+
 ---
 
 ### 4. Offline-safe upload queue
