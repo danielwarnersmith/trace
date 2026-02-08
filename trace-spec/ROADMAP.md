@@ -21,7 +21,7 @@ Build priorities and implementation areas for TRACE.
 - Tap-to-toggle voice note recording. — Done
 - Offline-safe upload queue. — Done
 - Digest view. — Done
-- Action trigger UI.
+- Action trigger UI. — Done
 
 ## 4. Background processing — Done
 

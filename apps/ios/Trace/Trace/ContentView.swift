@@ -129,6 +129,9 @@ struct ContentView: View {
                 NavigationLink("Digest") {
                     DigestView(sessionRoot: root)
                 }
+                NavigationLink("Actions") {
+                    ActionsView(sessionRoot: root)
+                }
             }
             Button("Open another session") {
                 SharedState.clearSessionRoot()

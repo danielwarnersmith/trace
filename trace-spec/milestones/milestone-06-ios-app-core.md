@@ -105,6 +105,8 @@
 
 **Done when:** User can trigger at least one action from the app; the run appears in actions.jsonl and (after sync) in the digest's Recent actions section.
 
+**Done.** appendActionRun(sessionRoot:actionId:); ActionsView (triggerable actions list); NavigationLink from playback view. See [trace-spec/plans/archive/m06-todo6-action-trigger-ui.md](../plans/archive/m06-todo6-action-trigger-ui.md).
+
 ---
 
 ## Dependencies
