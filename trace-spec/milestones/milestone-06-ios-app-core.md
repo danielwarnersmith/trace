@@ -91,6 +91,8 @@
 
 **Done when:** User can open the digest view and see the session summary (session info, marker count, notable moments, voice note excerpts when present).
 
+**Done.** loadDigest(from:); DigestView (Markdown or placeholder); NavigationLink from playback view. See [trace-spec/plans/archive/m06-todo5-digest-view-impl.md](../plans/archive/m06-todo5-digest-view-impl.md).
+
 ---
 
 ### 6. Action trigger UI

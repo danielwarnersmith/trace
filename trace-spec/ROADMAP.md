@@ -20,7 +20,7 @@ Build priorities and implementation areas for TRACE.
 - Homescreen widget for markers. — Done
 - Tap-to-toggle voice note recording. — Done
 - Offline-safe upload queue. — Done
-- Digest view.
+- Digest view. — Done
 - Action trigger UI.
 
 ## 4. Background processing — Done

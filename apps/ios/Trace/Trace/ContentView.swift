@@ -23,18 +23,20 @@ struct ContentView: View {
     @State private var loadError: String?
 
     var body: some View {
-        Group {
-            if let playback {
-                playbackView(playback)
-            } else if let loadError {
-                errorView(loadError)
-            } else if sessionRoot != nil {
-                ProgressView("Loading…")
-            } else {
-                openSessionView
+        NavigationStack {
+            Group {
+                if let playback {
+                    playbackView(playback)
+                } else if let loadError {
+                    errorView(loadError)
+                } else if sessionRoot != nil {
+                    ProgressView("Loading…")
+                } else {
+                    openSessionView
+                }
             }
+            .padding()
         }
-        .padding()
         .fileImporter(
             isPresented: $showFolderPicker,
             allowedContentTypes: [.folder],
@@ -122,6 +124,11 @@ struct ContentView: View {
                 Text(err)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+            if let root = sessionRoot {
+                NavigationLink("Digest") {
+                    DigestView(sessionRoot: root)
+                }
             }
             Button("Open another session") {
                 SharedState.clearSessionRoot()
