@@ -44,7 +44,9 @@ struct ActionsView: View {
             }
         }
         .navigationTitle("Actions")
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 
     private func trigger(_ action: TriggerableAction) {

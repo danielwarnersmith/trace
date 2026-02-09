@@ -46,7 +46,9 @@ struct DigestView: View {
             }
         }
         .navigationTitle("Digest")
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
         .onAppear {
             content = loadDigest(from: sessionRoot)
         }

@@ -13,9 +13,11 @@ struct TraceApp: App {
         WindowGroup {
             ContentView()
         }
+        #if os(iOS)
         .onOpenURL { url in
             handleAddMarkerURL(url)
         }
+        #endif
     }
 
     /// Handle trace://add-marker?tag=highlight (or structure, texture_sample, fix_review).

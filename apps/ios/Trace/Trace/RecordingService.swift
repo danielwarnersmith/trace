@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import Combine
 import Foundation
 
 @MainActor
@@ -22,6 +23,7 @@ final class RecordingService: ObservableObject {
         error = nil
         startOffsetMs = offsetMs
         recordingStartTime = Date()
+        #if os(iOS)
         do {
             try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
             try AVAudioSession.sharedInstance().setActive(true)
@@ -29,6 +31,7 @@ final class RecordingService: ObservableObject {
             self.error = error.localizedDescription
             return false
         }
+        #endif
         let tempDir = FileManager.default.temporaryDirectory
         let id = ulid()
         let url = tempDir.appending(path: "voice_\(id).m4a")

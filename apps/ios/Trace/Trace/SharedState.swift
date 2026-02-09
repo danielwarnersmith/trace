@@ -28,7 +28,11 @@ enum SharedState {
     static func resolveSessionRoot() -> URL? {
         guard let data = sessionRootBookmark else { return nil }
         var isStale = false
+        #if os(iOS)
         guard let url = try? URL(resolvingBookmarkData: data, options: .withoutImplicitSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale) else { return nil }
+        #else
+        guard let url = try? URL(resolvingBookmarkData: data, options: [], relativeTo: nil, bookmarkDataIsStale: &isStale) else { return nil }
+        #endif
         _ = url.startAccessingSecurityScopedResource()
         return url
     }

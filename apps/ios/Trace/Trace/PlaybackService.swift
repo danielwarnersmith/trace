@@ -33,6 +33,7 @@ final class PlaybackService: ObservableObject {
     /// Load review audio and prepare playback. Call after init. Sets error if no review audio.
     func load() {
         error = nil
+        #if os(iOS)
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
             try AVAudioSession.sharedInstance().setActive(true)
@@ -40,6 +41,7 @@ final class PlaybackService: ObservableObject {
             self.error = "Audio session: \(error.localizedDescription)"
             return
         }
+        #endif
         guard let audioURL = session.reviewAudioURL(sessionRoot: sessionRoot) else {
             error = "No review audio in session"
             return
@@ -54,9 +56,13 @@ final class PlaybackService: ObservableObject {
 
         // Observe duration when available
         Task {
-            let dur = await item.asset.load(.duration)
-            let ms = Int(CMTimeGetSeconds(dur) * 1000)
-            await MainActor.run { self.durationMs = ms }
+            do {
+                let dur = try await item.asset.load(.duration)
+                let ms = Int(CMTimeGetSeconds(dur) * 1000)
+                await MainActor.run { self.durationMs = ms }
+            } catch {
+                // Ignore duration load failure; durationMs stays nil
+            }
         }
 
         // Periodic time observer: publish currentOffsetMs
